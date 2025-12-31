@@ -1,2 +1,0 @@
-src/app/(dashboard)/marks/new-exam/page.tsx(39,43): error TS2345: Argument of type '{ name: string; date: string; maxMarks: number; subjects: string[]; }' is not assignable to parameter of type 'Omit<Exam, "id">'.
-  Property 'grade' is missing in type '{ name: string; date: string; maxMarks: number; subjects: string[]; }' but required in type 'Omit<Exam, "id">'.
