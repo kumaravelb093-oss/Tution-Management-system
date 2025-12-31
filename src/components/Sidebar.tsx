@@ -1,15 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Users, 
-  CreditCard, 
-  BookOpen, 
-  BarChart3, 
-  Settings,
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
+  BookOpen,
+  BarChart3,
   LogOut,
-  GraduationCap
+  GraduationCap,
+  Menu
 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
@@ -25,63 +25,60 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="h-screen w-72 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white flex flex-col fixed left-0 top-0 shadow-2xl">
+    <div className="h-screen w-64 bg-white border-r border-[#DADCE0] flex flex-col fixed left-0 top-0">
       {/* Brand Header */}
-      <div className="p-6 border-b border-slate-700/50">
+      <div className="p-5 border-b border-[#E8EAED]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-            <GraduationCap size={24} className="text-white" />
+          <div className="w-10 h-10 bg-[#1A73E8] rounded-lg flex items-center justify-center">
+            <GraduationCap size={22} className="text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold tracking-wide">DIAMOND</h1>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Tuition Center</p>
+            <h1 className="text-[15px] font-semibold text-[#202124]">Diamond Tuitions</h1>
+            <p className="text-[11px] text-[#5F6368]">Management System</p>
           </div>
         </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        <p className="px-4 py-2 text-[10px] font-semibold text-slate-500 uppercase tracking-widest">Main Menu</p>
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                isActive 
-                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/25" 
-                  : "text-slate-400 hover:bg-slate-800/50 hover:text-white"
-              }`}
-            >
-              <item.icon size={20} />
-              {item.name}
-              {isActive && (
-                <div className="ml-auto w-2 h-2 bg-white rounded-full animate-pulse"></div>
-              )}
-            </Link>
-          );
-        })}
+      <nav className="flex-1 p-3 overflow-y-auto">
+        <div className="space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-medium transition-colors ${isActive
+                    ? "bg-[#E8F0FE] text-[#1A73E8]"
+                    : "text-[#5F6368] hover:bg-[#F8F9FA] hover:text-[#202124]"
+                  }`}
+              >
+                <item.icon size={20} strokeWidth={isActive ? 2 : 1.5} />
+                {item.name}
+              </Link>
+            );
+          })}
+        </div>
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-slate-700/50">
-        <div className="bg-slate-800/50 rounded-xl p-4 mb-3">
+      <div className="p-3 border-t border-[#E8EAED]">
+        <div className="px-4 py-3 mb-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-9 h-9 bg-[#1A73E8] rounded-full flex items-center justify-center text-white font-medium text-sm">
               AD
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">Administrator</p>
-              <p className="text-xs text-slate-400 truncate">admin@diamond.edu</p>
+              <p className="text-[13px] font-medium text-[#202124] truncate">Administrator</p>
+              <p className="text-[11px] text-[#5F6368] truncate">admin@diamond.edu</p>
             </div>
           </div>
         </div>
-        <button 
+        <button
           onClick={() => auth.signOut()}
-          className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 w-full hover:bg-red-500/10 rounded-xl transition-all duration-200 text-sm font-medium"
+          className="flex items-center gap-3 px-4 py-2.5 text-[#5F6368] hover:text-[#D93025] w-full hover:bg-[#FCE8E6] rounded-lg transition-colors text-[14px] font-medium"
         >
-          <LogOut size={20} />
+          <LogOut size={18} />
           Sign Out
         </button>
       </div>

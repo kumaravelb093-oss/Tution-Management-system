@@ -1,54 +1,65 @@
 "use client";
 import { useEffect, useState } from "react";
-import { studentService, Student } from "@/services/studentService";
-import { feeService, Payment } from "@/services/feeService";
-import { marksService, Exam, MarksEntry } from "@/services/marksService";
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    LineChart,
-    Line,
-    PieChart,
-    Pie,
-    Cell,
-    Legend
-} from "recharts";
-
-const COLORS = ['#0f172a', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    PieChart, Pie, Cell
+} from 'recharts';
+import { feeService } from "@/services/feeService";
+import { studentService } from "@/services/studentService";
+import { marksService } from "@/services/marksService";
+import { ArrowUpRight, TrendingUp, PieChart as PieIcon } from "lucide-react";
 
 export default function AnalyticsPage() {
-    const [students, setStudents] = useState<Student[]>([]);
-    const [payments, setPayments] = useState<Payment[]>([]);
-    const [exams, setExams] = useState<Exam[]>([]);
-    const [allMarks, setAllMarks] = useState<MarksEntry[]>([]);
+    const [feesData, setFeesData] = useState<any[]>([]);
+    const [studentStats, setStudentStats] = useState<any[]>([]);
+    const [statusData, setStatusData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadAnalyticsData();
+        loadAnalytics();
     }, []);
 
-    const loadAnalyticsData = async () => {
+    const loadAnalytics = async () => {
         try {
-            const [studentsData, paymentsData, examsData] = await Promise.all([
+            const [payments, students, exams] = await Promise.all([
+                feeService.getRecentPayments(1000), // Get all recent to aggregate
                 studentService.getStudents(),
-                feeService.getRecentPayments(100),
-                marksService.getExams(),
+                marksService.getExams()
             ]);
-            setStudents(studentsData);
-            setPayments(paymentsData);
-            setExams(examsData);
 
-            // Load marks for all exams
-            if (examsData.length > 0) {
-                const marksPromises = examsData.map(exam => marksService.getMarksByExam(exam.id!));
-                const marksArrays = await Promise.all(marksPromises);
-                setAllMarks(marksArrays.flat());
-            }
+            // 1. Monthly Fee Collection
+            const feesByMonth = payments.reduce((acc: any, curr) => {
+                const key = `${curr.feeMonth.substring(0, 3)}`;
+                acc[key] = (acc[key] || 0) + Number(curr.amount);
+                return acc;
+            }, {});
+
+            const feesChartData = Object.keys(feesByMonth).map(key => ({
+                name: key,
+                amount: feesByMonth[key]
+            }));
+            setFeesData(feesChartData);
+
+            // 2. Student Distribution by Grade
+            const studentsByGrade = students.reduce((acc: any, curr) => {
+                acc[curr.grade] = (acc[curr.grade] || 0) + 1;
+                return acc;
+            }, {});
+
+            const gradeChartData = Object.keys(studentsByGrade).map(key => ({
+                name: key,
+                count: studentsByGrade[key]
+            }));
+            setStudentStats(gradeChartData);
+
+            // 3. Status Distribution
+            const active = students.filter(s => s.status === 'Active').length;
+            const inactive = students.length - active;
+            setStatusData([
+                { name: 'Active', value: active, color: '#1E8E3E' },
+                { name: 'Inactive', value: inactive, color: '#D93025' },
+            ]);
+
         } catch (error) {
             console.error(error);
         } finally {
@@ -56,116 +67,83 @@ export default function AnalyticsPage() {
         }
     };
 
-    // Data for Charts
-    // 1. Students by Grade
-    const gradeDistribution = students.reduce((acc, student) => {
-        acc[student.grade] = (acc[student.grade] || 0) + 1;
-        return acc;
-    }, {} as Record<string, number>);
-
-    const gradeChartData = Object.entries(gradeDistribution).map(([name, value]) => ({
-        name,
-        students: value,
-    }));
-
-    // 2. Monthly Fee Collection (last 6 months)
-    const getMonthName = (date: Date) => date.toLocaleString('default', { month: 'short' });
-    const monthlyCollection: Record<string, number> = {};
-
-    for (let i = 5; i >= 0; i--) {
-        const d = new Date();
-        d.setMonth(d.getMonth() - i);
-        monthlyCollection[`${getMonthName(d)} ${d.getFullYear()}`] = 0;
-    }
-
-    payments.forEach(p => {
-        const key = `${p.feeMonth.slice(0, 3)} ${p.feeYear}`;
-        if (monthlyCollection[key] !== undefined) {
-            monthlyCollection[key] += Number(p.amount);
-        }
-    });
-
-    const feeChartData = Object.entries(monthlyCollection).map(([name, amount]) => ({
-        name,
-        amount,
-    }));
-
-    // 3. Active vs Inactive Students
-    const activeCount = students.filter(s => s.status === "Active").length;
-    const inactiveCount = students.filter(s => s.status === "Inactive").length;
-    const statusData = [
-        { name: 'Active', value: activeCount },
-        { name: 'Inactive', value: inactiveCount },
-    ];
-
-    // 4. Subject-wise average (if marks exist)
-    const subjectAverages: Record<string, { total: number; count: number }> = {};
-    allMarks.forEach(m => {
-        if (!subjectAverages[m.subject]) {
-            subjectAverages[m.subject] = { total: 0, count: 0 };
-        }
-        subjectAverages[m.subject].total += (m.marksObtained / m.maxMarks) * 100;
-        subjectAverages[m.subject].count += 1;
-    });
-
-    const subjectChartData = Object.entries(subjectAverages).map(([subject, data]) => ({
-        name: subject,
-        average: Math.round(data.total / data.count),
-    })).slice(0, 8);
-
     if (loading) {
         return (
-            <div className="h-full flex items-center justify-center">
-                <p className="text-slate-500">Loading analytics...</p>
+            <div className="h-[60vh] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-2 border-[#1A73E8] border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-[#5F6368] font-medium text-sm">Loading analytics...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">Analytics & Insights</h1>
-                <p className="text-muted-foreground mt-1">Performance metrics and trends.</p>
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-normal text-[#202124]">Analytics & Reports</h1>
+                    <p className="text-sm text-[#5F6368] mt-1">Key performance indicators and insights</p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                {/* Monthly Fee Collection */}
-                <div className="card-base bg-white">
-                    <h3 className="font-semibold text-slate-900 mb-4">Monthly Fee Collection</h3>
-                    <div className="h-[300px]">
+                {/* Fee Collection Chart */}
+                <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-normal text-[#202124]">Revenue Trends</h3>
+                            <p className="text-xs text-[#5F6368]">Monthly fee collection</p>
+                        </div>
+                        <div className="p-2 bg-[#E8F0FE] rounded-lg">
+                            <TrendingUp size={20} className="text-[#1A73E8]" />
+                        </div>
+                    </div>
+                    <div className="h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={feeChartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                                <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₹${v / 1000}k`} />
-                                <Tooltip formatter={(value) => [`₹${Number(value).toLocaleString()}`, 'Amount']} />
-                                <Bar dataKey="amount" fill="#0f172a" radius={[4, 4, 0, 0]} />
+                            <BarChart data={feesData}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E8EAED" />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#5F6368', fontSize: 12 }}
+                                    dy={10}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: '#5F6368', fontSize: 12 }}
+                                    tickFormatter={(value) => `₹${value / 1000}k`}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: '#F8F9FA' }}
+                                    contentStyle={{ backgroundColor: '#fff', borderRadius: '8px', border: '1px solid #E8EAED', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+                                />
+                                <Bar
+                                    dataKey="amount"
+                                    fill="#1A73E8"
+                                    radius={[4, 4, 0, 0]}
+                                    barSize={40}
+                                />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Students by Grade */}
-                <div className="card-base bg-white">
-                    <h3 className="font-semibold text-slate-900 mb-4">Students by Grade</h3>
-                    <div className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={gradeChartData} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                <XAxis type="number" tick={{ fontSize: 12 }} />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 12 }} width={80} />
-                                <Tooltip />
-                                <Bar dataKey="students" fill="#3b82f6" radius={[0, 4, 4, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                {/* Student Status Pie Chart */}
+                <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-lg font-normal text-[#202124]">Student Distribution</h3>
+                            <p className="text-xs text-[#5F6368]">Active vs Inactive students</p>
+                        </div>
+                        <div className="p-2 bg-[#E6F4EA] rounded-lg">
+                            <PieIcon size={20} className="text-[#1E8E3E]" />
+                        </div>
                     </div>
-                </div>
-
-                {/* Student Status Pie */}
-                <div className="card-base bg-white">
-                    <h3 className="font-semibold text-slate-900 mb-4">Student Status</h3>
-                    <div className="h-[300px]">
+                    <div className="h-[300px] w-full flex items-center justify-center">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -174,42 +152,33 @@ export default function AnalyticsPage() {
                                     cy="50%"
                                     innerRadius={60}
                                     outerRadius={100}
-                                    fill="#8884d8"
                                     paddingAngle={5}
                                     dataKey="value"
-                                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                                 >
                                     {statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={index === 0 ? '#10b981' : '#ef4444'} />
+                                        <Cell key={`cell-${index}`} fill={entry.color} />
                                     ))}
                                 </Pie>
-                                <Legend />
+                                <Tooltip />
+                                <Legend verticalAlign="bottom" height={36} iconType="circle" />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Subject-wise Performance */}
-                <div className="card-base bg-white">
-                    <h3 className="font-semibold text-slate-900 mb-4">Subject-wise Average Performance</h3>
-                    {subjectChartData.length === 0 ? (
-                        <div className="h-[300px] flex items-center justify-center text-slate-400">
-                            No marks data available yet.
-                        </div>
-                    ) : (
-                        <div className="h-[300px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={subjectChartData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                                    <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
-                                    <YAxis tick={{ fontSize: 12 }} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
-                                    <Tooltip formatter={(value) => [`${value}%`, 'Average']} />
-                                    <Bar dataKey="average" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
+                {/* Grade Distribution */}
+                <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm p-6 lg:col-span-2">
+                    <h3 className="text-lg font-normal text-[#202124] mb-6">Students by Grade</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {studentStats.map((stat, index) => (
+                            <div key={index} className="bg-[#F8F9FA] p-4 rounded-lg text-center border border-[#E8EAED]">
+                                <p className="text-2xl font-normal text-[#1A73E8]">{stat.count}</p>
+                                <p className="text-sm text-[#5F6368] mt-1">{stat.name}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
+
             </div>
         </div>
     );

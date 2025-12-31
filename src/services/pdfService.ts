@@ -6,36 +6,45 @@ export const pdfService = {
     generateReceipt: (payment: Payment) => {
         const doc = new jsPDF();
 
-        // 1. Header
+        // 1. Header - Diamond Tuitions Branding
         doc.setFontSize(22);
         doc.setFont("helvetica", "bold");
-        doc.text("ACADEMIA TUITION CENTER", 105, 20, { align: "center" });
+        doc.setTextColor(32, 33, 36); // Google #202124
+        doc.text("DIAMOND TUITIONS", 105, 20, { align: "center" });
 
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.text("123, Excellence Street, Knowledge City, Chennai - 600001", 105, 28, { align: "center" });
-        doc.text("Phone: +91 98765 43210 | Email: admin@academia.com", 105, 33, { align: "center" });
+        doc.setTextColor(95, 99, 104); // Google #5F6368
+        doc.text("Academic Excellence & Professional Coaching", 105, 26, { align: "center" });
+        doc.text("123, Excellence Street, Knowledge City, Chennai - 600001", 105, 32, { align: "center" });
+        doc.text("Phone: +91 98765 43210 | Email: admin@diamond.edu", 105, 37, { align: "center" });
 
+        doc.setDrawColor(218, 220, 224); // Google #DADCE0
         doc.setLineWidth(0.5);
-        doc.line(20, 38, 190, 38);
+        doc.line(20, 42, 190, 42);
 
         // 2. Receipt Info
-        doc.setFontSize(16);
+        doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
-        doc.text("FEE RECEIPT", 105, 50, { align: "center" });
+        doc.setTextColor(26, 115, 232); // Google Blue #1A73E8
+        doc.text("FEE RECEIPT", 105, 55, { align: "center" });
 
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
+        doc.setTextColor(32, 33, 36);
 
         const leftX = 20;
         const rightX = 140;
-        const startY = 65;
+        const startY = 70;
         const gap = 8;
 
         doc.text(`Receipt No: ${payment.receiptNumber || "N/A"}`, leftX, startY);
         doc.text(`Date: ${payment.paymentDate}`, rightX, startY);
 
+        doc.setFont("helvetica", "bold");
         doc.text(`Student Name: ${payment.studentName}`, leftX, startY + gap);
+        doc.setFont("helvetica", "normal");
+
         doc.text(`Class/Grade: ${payment.grade}`, rightX, startY + gap);
 
         // 3. Table
@@ -49,8 +58,30 @@ export const pdfService = {
             ],
             foot: [['Total Paid', '', `Rs. ${payment.amount.toLocaleString()}`]],
             theme: 'grid',
-            headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' }, // Slate-900
-            footStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: 'bold' },
+            headStyles: {
+                fillColor: [248, 249, 250], // Light Grey
+                textColor: [32, 33, 36], // Dark Text
+                fontStyle: 'bold',
+                lineWidth: 0.1,
+                lineColor: [218, 220, 224]
+            },
+            bodyStyles: {
+                textColor: [32, 33, 36],
+                lineWidth: 0.1,
+                lineColor: [218, 220, 224]
+            },
+            footStyles: {
+                fillColor: [255, 255, 255],
+                textColor: [26, 115, 232], // Blue Total
+                fontStyle: 'bold',
+                lineWidth: 0.1,
+                lineColor: [218, 220, 224]
+            },
+            styles: {
+                font: "helvetica",
+                fontSize: 10,
+                cellPadding: 5,
+            }
         });
 
         // 4. Footer / Signature
@@ -58,12 +89,14 @@ export const pdfService = {
         const finalY = doc.lastAutoTable.finalY + 40;
 
         doc.setFontSize(10);
-        doc.text("Authorized Signature", 150, finalY, { align: "center" });
-        doc.line(130, finalY - 5, 170, finalY - 5);
+        doc.setTextColor(32, 33, 36);
+        doc.text("Authorized Signature", 160, finalY, { align: "center" });
+        doc.setDrawColor(32, 33, 36);
+        doc.line(140, finalY - 5, 180, finalY - 5);
 
         doc.setFontSize(8);
-        doc.setTextColor(150);
-        doc.text("This is a computer generated receipt.", 105, 280, { align: "center" });
+        doc.setTextColor(154, 160, 166); // #9AA0A6
+        doc.text("Diamond Tuitions - Computer Generated Receipt", 105, 280, { align: "center" });
 
         // Save
         doc.save(`Receipt_${payment.receiptNumber}.pdf`);

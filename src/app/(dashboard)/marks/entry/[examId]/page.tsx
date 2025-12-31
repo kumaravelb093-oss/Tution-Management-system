@@ -1,68 +1,47 @@
 "use client";
 export const dynamic = 'force-dynamic';
-import { useEffect, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Link from "next/link";
+import { useEffect, useState, use } from "react";
 import { marksService, Exam, MarksEntry } from "@/services/marksService";
 import { studentService, Student } from "@/services/studentService";
-import { ArrowLeft, Save, CheckCircle } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Search, Calculator } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-type MarksGrid = {
-    [studentId: string]: {
-        [subject: string]: number | "";
-    };
-};
-
-export default function MarksEntryPage() {
-    const params = useParams();
+export default function MarksEntryPage({ params }: { params: Promise<{ examId: string }> }) {
+    const { examId } = use(params);
     const router = useRouter();
-    const examId = params.examId as string;
 
     const [exam, setExam] = useState<Exam | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
-    const [marksGrid, setMarksGrid] = useState<MarksGrid>({});
+    const [marks, setMarks] = useState<Record<string, Record<string, number>>>({}); // studentId -> subject -> marks
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
+    const [savingSuccess, setSavingSuccess] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        if (examId) {
-            loadData();
-        }
+        loadData();
     }, [examId]);
 
     const loadData = async () => {
         try {
-            // Load Exam details
-            const exams = await marksService.getExams();
-            const currentExam = exams.find(e => e.id === examId);
-            if (!currentExam) {
-                alert("Exam not found");
-                router.push("/marks");
-                return;
-            }
-            setExam(currentExam);
+            const [examData, studentsData] = await Promise.all([
+                marksService.getExam(examId),
+                studentService.getStudents()
+            ]);
 
-            // Load students for this grade
-            const allStudents = await studentService.getStudents();
-            const gradeStudents = allStudents.filter(s => s.grade === currentExam.grade && s.status === "Active");
-            setStudents(gradeStudents);
+            setExam(examData);
+            setStudents(studentsData);
 
-            // Load existing marks
-            const existingMarks = await marksService.getMarksByExam(examId);
-
-            // Initialize grid
-            const grid: MarksGrid = {};
-            gradeStudents.forEach(student => {
-                grid[student.id!] = {};
-                currentExam.subjects.forEach(subject => {
-                    const existing = existingMarks.find(
-                        m => m.studentId === student.id && m.subject === subject
-                    );
-                    grid[student.id!][subject] = existing ? existing.marksObtained : "";
+            // Initialize marks from existing entries
+            if (examData && examData.entries) {
+                const marksMap: Record<string, Record<string, number>> = {};
+                examData.entries.forEach((entry) => {
+                    if (!marksMap[entry.studentId]) marksMap[entry.studentId] = {};
+                    marksMap[entry.studentId][entry.subject] = entry.marksObtained;
                 });
-            });
-            setMarksGrid(grid);
+                setMarks(marksMap);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -70,176 +49,202 @@ export default function MarksEntryPage() {
         }
     };
 
-    const handleMarksChange = (studentId: string, subject: string, value: string) => {
-        const numValue = value === "" ? "" : Math.min(Number(value), exam?.maxMarks || 100);
-        setMarksGrid(prev => ({
+    const handleMarkChange = (studentId: string, subject: string, value: string) => {
+        const numValue = value === "" ? 0 : Number(value);
+        if (isNaN(numValue) || numValue < 0 || (exam && numValue > exam.maxMarks)) return;
+
+        setMarks(prev => ({
             ...prev,
             [studentId]: {
                 ...prev[studentId],
                 [subject]: numValue
             }
         }));
-        setSaved(false);
+        setSavingSuccess(false);
     };
 
     const handleSave = async () => {
         if (!exam) return;
-
         setSaving(true);
         try {
-            const entries: Omit<MarksEntry, "id">[] = [];
+            const entries: MarksEntry[] = [];
 
-            students.forEach(student => {
-                exam.subjects.forEach(subject => {
-                    const marks = marksGrid[student.id!]?.[subject];
-                    if (marks !== "" && marks !== undefined) {
-                        entries.push({
-                            examId: exam.id!,
-                            studentId: student.id!,
-                            studentName: student.fullName,
-                            subject,
-                            marksObtained: Number(marks),
-                            maxMarks: exam.maxMarks,
-                        });
-                    }
+            Object.entries(marks).forEach(([studentId, studentMarks]) => {
+                const student = students.find(s => s.id === studentId);
+                if (!student) return;
+
+                Object.entries(studentMarks).forEach(([subject, marksObtained]) => {
+                    entries.push({
+                        studentId,
+                        studentName: student.fullName,
+                        subject,
+                        marksObtained,
+                        maxMarks: exam.maxMarks
+                    });
                 });
             });
 
-            await marksService.saveMarks(entries);
-            setSaved(true);
-            setTimeout(() => setSaved(false), 3000);
+            await marksService.updateExamEntries(examId, entries);
+            setSavingSuccess(true);
+            setTimeout(() => setSavingSuccess(false), 3000);
         } catch (error) {
             console.error(error);
-            alert("Failed to save marks.");
+            alert("Failed to save marks");
         } finally {
             setSaving(false);
         }
     };
 
-    const calculateStudentTotal = (studentId: string) => {
-        if (!exam) return { total: 0, max: 0, percentage: 0 };
-        let total = 0;
-        let count = 0;
-        exam.subjects.forEach(subject => {
-            const marks = marksGrid[studentId]?.[subject];
-            if (marks !== "" && marks !== undefined) {
-                total += Number(marks);
-                count++;
-            }
-        });
-        const max = count * exam.maxMarks;
-        const percentage = marksService.calculatePercentage(total, max);
-        return { total, max, percentage };
+    const filteredStudents = students.filter(s =>
+        s.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.grade.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const calculateTotal = (studentId: string) => {
+        const studentMarks = marks[studentId] || {};
+        return Object.values(studentMarks).reduce((sum, val) => sum + val, 0);
     };
 
-    if (loading) {
+    const calculatePercentage = (studentId: string) => {
+        if (!exam || exam.subjects.length === 0) return 0;
+        const total = calculateTotal(studentId);
+        const maxTotal = exam.maxMarks * exam.subjects.length;
+        return ((total / maxTotal) * 100).toFixed(1);
+    };
+
+    if (loading || !exam) {
         return (
-            <div className="h-full flex items-center justify-center">
-                <p className="text-slate-500">Loading exam data...</p>
+            <div className="h-[60vh] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-2 border-[#1A73E8] border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-[#5F6368] font-medium text-sm">Loading exam datasheet...</p>
+                </div>
             </div>
         );
     }
 
-    if (!exam) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
-            <div className="flex justify-between items-center">
+        <div className="space-y-6 h-[calc(100vh-100px)] flex flex-col">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
                 <div className="flex items-center gap-4">
-                    <Link href="/marks" className="p-2 hover:bg-slate-100 rounded-full text-slate-500 transition-colors">
-                        <ArrowLeft size={20} />
+                    <Link href="/marks" className="p-2 hover:bg-[#E8EAED] rounded-full text-[#5F6368] transition-colors">
+                        <ArrowLeft size={22} />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{exam.name}</h1>
-                        <p className="text-muted-foreground">{exam.grade} • {exam.date} • Max Marks: {exam.maxMarks}</p>
+                        <h1 className="text-2xl font-normal text-[#202124]">{exam.name}</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm text-[#5F6368]">{new Date(exam.date).toLocaleDateString()}</span>
+                            <span className="text-xs text-[#9AA0A6]">•</span>
+                            <span className="text-sm text-[#5F6368]">Max: {exam.maxMarks} per subject</span>
+                        </div>
                     </div>
                 </div>
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="btn-primary flex items-center gap-2"
-                >
-                    {saving ? "Saving..." : saved ? <><CheckCircle size={18} /> Saved!</> : <><Save size={18} /> Save All Marks</>}
-                </button>
+
+                <div className="flex items-center gap-3">
+                    {savingSuccess && (
+                        <span className="text-sm text-[#1E8E3E] flex items-center gap-1 animate-fade-in bg-[#E6F4EA] px-3 py-1 rounded-full">
+                            All Saved
+                        </span>
+                    )}
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="btn-primary flex items-center gap-2 shadow-sm min-w-[120px]"
+                    >
+                        {saving ? (
+                            <>
+                                <Loader2 size={18} className="animate-spin" />
+                                <span>Saving...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Save size={18} />
+                                <span>Save All</span>
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
 
-            {students.length === 0 ? (
-                <div className="card-base bg-white text-center py-12">
-                    <p className="text-slate-500">No active students found for grade: <strong>{exam.grade}</strong>.</p>
-                    <p className="text-sm text-slate-400 mt-2">Add students with this grade to enter marks.</p>
+            {/* Toolbar */}
+            <div className="flex items-center gap-4 shrink-0">
+                <div className="relative max-w-md w-full">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                    <input
+                        type="text"
+                        placeholder="Filter students..."
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
-            ) : (
-                <div className="card-base p-0 overflow-hidden bg-white">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm border-collapse">
-                            <thead className="bg-slate-900 text-white sticky top-0">
-                                <tr>
-                                    <th className="px-4 py-3 text-left font-semibold border-r border-slate-700 min-w-[200px]">Student Name</th>
-                                    {exam.subjects.map(subject => (
-                                        <th key={subject} className="px-4 py-3 text-center font-semibold border-r border-slate-700 min-w-[100px]">
-                                            {subject}
-                                        </th>
-                                    ))}
-                                    <th className="px-4 py-3 text-center font-semibold min-w-[80px]">Total</th>
-                                    <th className="px-4 py-3 text-center font-semibold min-w-[80px]">%</th>
-                                    <th className="px-4 py-3 text-center font-semibold min-w-[60px]">Grade</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-200">
-                                {students.map((student, idx) => {
-                                    const { total, max, percentage } = calculateStudentTotal(student.id!);
-                                    const grade = marksService.getGrade(percentage);
-                                    const status = marksService.getPassStatus(percentage);
+                <div className="ml-auto flex items-center gap-2 text-sm text-[#5F6368] bg-[#F8F9FA] px-3 py-1.5 rounded-lg border border-[#E8EAED]">
+                    <Calculator size={16} />
+                    <span>Auto-calculating totals</span>
+                </div>
+            </div>
 
-                                    return (
-                                        <tr key={student.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
-                                            <td className="px-4 py-2 font-medium text-slate-900 border-r border-slate-100">
-                                                {student.fullName}
+            {/* Spreadsheet Grid */}
+            <div className="card-base bg-white p-0 overflow-hidden shadow-sm border border-[#E8EAED] rounded-lg flex-1 flex flex-col">
+                <div className="overflow-auto flex-1">
+                    <table className="w-full border-collapse">
+                        <thead className="bg-[#F8F9FA] sticky top-0 z-10 shadow-sm">
+                            <tr>
+                                <th className="px-5 py-4 text-left text-[12px] font-medium text-[#5F6368] uppercase tracking-wider border-b border-r border-[#E8EAED] min-w-[200px] sticky left-0 bg-[#F8F9FA] z-20">Student Name</th>
+                                <th className="px-4 py-4 text-left text-[12px] font-medium text-[#5F6368] uppercase tracking-wider border-b border-r border-[#E8EAED] min-w-[100px]">Class</th>
+                                {exam.subjects.map(subject => (
+                                    <th key={subject} className="px-4 py-4 text-center text-[12px] font-medium text-[#5F6368] uppercase tracking-wider border-b border-r border-[#E8EAED] min-w-[120px]">
+                                        {subject}
+                                    </th>
+                                ))}
+                                <th className="px-4 py-4 text-center text-[12px] font-medium text-[#1A73E8] uppercase tracking-wider border-b border-r border-[#E8EAED] min-w-[100px] bg-[#E8F0FE]/50">Total</th>
+                                <th className="px-4 py-4 text-center text-[12px] font-medium text-[#1E8E3E] uppercase tracking-wider border-b border-[#E8EAED] min-w-[100px] bg-[#E6F4EA]/50">%</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white">
+                            {filteredStudents.map((student) => {
+                                const total = calculateTotal(student.id!);
+                                const percentage = calculatePercentage(student.id!);
+                                const grade = marksService.calculateGrade(Number(percentage));
+
+                                return (
+                                    <tr key={student.id} className="hover:bg-[#F8F9FA] transition-colors">
+                                        <td className="px-5 py-3 border-b border-r border-[#E8EAED] sticky left-0 bg-white group-hover:bg-[#F8F9FA] z-10">
+                                            <p className="text-[14px] font-medium text-[#202124]">{student.fullName}</p>
+                                        </td>
+                                        <td className="px-4 py-3 border-b border-r border-[#E8EAED] text-[13px] text-[#5F6368]">
+                                            {student.grade}
+                                        </td>
+                                        {exam.subjects.map(subject => (
+                                            <td key={subject} className="px-2 py-2 border-b border-r border-[#E8EAED]">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={exam.maxMarks}
+                                                    className="w-full text-center py-1.5 rounded border border-transparent hover:border-[#DADCE0] focus:border-[#1A73E8] focus:bg-[#E8F0FE] focus:ring-1 focus:ring-[#1A73E8] transition-all text-[#202124] font-medium"
+                                                    value={marks[student.id!]?.[subject] ?? ""}
+                                                    onChange={(e) => handleMarkChange(student.id!, subject, e.target.value)}
+                                                    placeholder="-"
+                                                />
                                             </td>
-                                            {exam.subjects.map(subject => (
-                                                <td key={subject} className="px-1 py-1 border-r border-slate-100">
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={exam.maxMarks}
-                                                        placeholder="-"
-                                                        className="w-full text-center px-2 py-2 border border-transparent rounded focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-all bg-transparent hover:bg-blue-50"
-                                                        value={marksGrid[student.id!]?.[subject] ?? ""}
-                                                        onChange={(e) => handleMarksChange(student.id!, subject, e.target.value)}
-                                                    />
-                                                </td>
-                                            ))}
-                                            <td className="px-4 py-2 text-center font-semibold text-slate-900">
-                                                {total} / {max}
-                                            </td>
-                                            <td className="px-4 py-2 text-center font-bold text-blue-600">
-                                                {percentage}%
-                                            </td>
-                                            <td className={`px-4 py-2 text-center font-bold ${status === "Pass" ? "text-green-600" : "text-red-600"}`}>
-                                                {grade}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-                        <p className="text-sm text-slate-500">
-                            {students.length} students • {exam.subjects.length} subjects • Navigate with <kbd className="px-1 py-0.5 bg-white border rounded text-xs">Tab</kbd>
-                        </p>
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="btn-primary flex items-center gap-2"
-                        >
-                            {saving ? "Saving..." : <><Save size={18} /> Save Marks</>}
-                        </button>
-                    </div>
+                                        ))}
+                                        <td className="px-4 py-3 border-b border-r border-[#E8EAED] text-center font-bold text-[#1A73E8] bg-[#F8F9FA]">
+                                            {total}
+                                        </td>
+                                        <td className="px-4 py-3 border-b border-[#E8EAED] text-center">
+                                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${Number(percentage) >= 40 ? 'text-[#1E8E3E] bg-[#E6F4EA]' : 'text-[#D93025] bg-[#FCE8E6]'
+                                                }`}>
+                                                {percentage}% ({grade})
+                                            </span>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+            </div>
         </div>
     );
 }

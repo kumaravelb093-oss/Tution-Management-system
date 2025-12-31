@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Plus, BookOpen, Search, ArrowRight, LayoutList } from "lucide-react";
 import { marksService, Exam } from "@/services/marksService";
-import { Plus, FileSpreadsheet, Calendar, ChevronRight } from "lucide-react";
 
 export default function MarksPage() {
     const [exams, setExams] = useState<Exam[]>([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         loadExams();
@@ -23,61 +24,85 @@ export default function MarksPage() {
         }
     };
 
+    const filteredExams = exams.filter(e =>
+        e.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Marks & Exams</h1>
-                    <p className="text-muted-foreground mt-1">Manage exams and enter student marks.</p>
+                    <h1 className="text-2xl font-normal text-[#202124]">Marks Management</h1>
+                    <p className="text-sm text-[#5F6368] mt-1">Manage exams and student performance</p>
                 </div>
-                <Link href="/marks/new-exam" className="btn-primary flex items-center gap-2">
+                <Link href="/marks/new-exam" className="btn-primary flex items-center gap-2 shadow-sm">
                     <Plus size={18} />
-                    Create New Exam
+                    <span>Create Exam</span>
                 </Link>
+            </div>
+
+            {/* Search */}
+            <div className="max-w-md relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                <input
+                    type="text"
+                    placeholder="Search exams..."
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] shadow-sm transition-shadow"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
             </div>
 
             {/* Exams Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {loading ? (
-                    <p className="text-slate-500 col-span-full text-center py-12">Loading exams...</p>
-                ) : exams.length === 0 ? (
-                    <div className="col-span-full card-base text-center py-12 bg-white">
-                        <FileSpreadsheet size={48} className="mx-auto text-slate-300 mb-4" />
-                        <h3 className="text-lg font-semibold text-slate-700">No Exams Created Yet</h3>
-                        <p className="text-sm text-slate-500 mt-1 mb-6">Create an exam to start entering marks.</p>
-                        <Link href="/marks/new-exam" className="btn-primary inline-flex items-center gap-2">
-                            <Plus size={18} />
-                            Create Exam
-                        </Link>
+                    <div className="col-span-full py-12 text-center text-[#5F6368]">
+                        Loading exams...
+                    </div>
+                ) : filteredExams.length === 0 ? (
+                    <div className="col-span-full py-12 text-center">
+                        <div className="mx-auto w-12 h-12 bg-[#F1F3F4] rounded-full flex items-center justify-center mb-3">
+                            <BookOpen size={24} className="text-[#9AA0A6]" />
+                        </div>
+                        <h3 className="text-[#202124] font-medium">No exams found</h3>
+                        <p className="text-[#5F6368] text-sm mt-1">Create a new exam to get started.</p>
                     </div>
                 ) : (
-                    exams.map((exam) => (
-                        <Link
-                            key={exam.id}
-                            href={`/marks/entry/${exam.id}`}
-                            className="card-base bg-white hover:border-blue-300 hover:shadow-md transition-all group"
-                        >
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="font-semibold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">{exam.name}</h3>
-                                    <p className="text-sm text-slate-500 mt-1">{exam.grade}</p>
+                    filteredExams.map(exam => (
+                        <div key={exam.id} className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm hover:shadow-md transition-shadow group p-0 overflow-hidden flex flex-col h-full">
+                            <div className="p-5 flex-1">
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="p-2 bg-[#F3E8FD] text-[#9333EA] rounded-lg">
+                                        <LayoutList size={20} />
+                                    </div>
+                                    <span className="text-xs font-medium bg-[#F1F3F4] text-[#5F6368] px-2 py-1 rounded-full">
+                                        {new Date(exam.date).toLocaleDateString()}
+                                    </span>
                                 </div>
-                                <ChevronRight size={20} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+
+                                <h3 className="text-lg font-medium text-[#202124] group-hover:text-[#1A73E8] transition-colors">{exam.name}</h3>
+
+                                <div className="mt-4 space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-[#5F6368]">Total Marks</span>
+                                        <span className="font-medium text-[#202124]">{exam.maxMarks}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-[#5F6368]">Subjects</span>
+                                        <span className="font-medium text-[#202124]">{exam.subjects.length}</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-4 text-sm text-slate-600">
-                                <span className="flex items-center gap-1">
-                                    <Calendar size={14} />
-                                    {exam.date}
-                                </span>
-                                <span className="bg-slate-100 px-2 py-0.5 rounded text-xs font-medium">
-                                    {exam.subjects.length} Subjects
-                                </span>
-                                <span className="bg-slate-100 px-2 py-0.5 rounded text-xs font-medium">
-                                    Max: {exam.maxMarks}
-                                </span>
-                            </div>
-                        </Link>
+                            <Link
+                                href={`/marks/entry/${exam.id}`}
+                                className="p-4 bg-[#F8F9FA] border-t border-[#E8EAED] text-[#1A73E8] text-sm font-medium flex items-center justify-between group-hover:bg-[#E8F0FE] transition-colors"
+                            >
+                                Enter Marks
+                                <ArrowRight size={16} />
+                            </Link>
+                        </div>
                     ))
                 )}
             </div>
