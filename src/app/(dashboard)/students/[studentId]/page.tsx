@@ -1,6 +1,6 @@
 "use client";
 export const dynamic = 'force-dynamic';
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { studentService, Student } from "@/services/studentService";
 import { feeService, Payment } from "@/services/feeService";
@@ -9,11 +9,14 @@ import { pdfService } from "@/services/pdfService";
 import {
     ArrowLeft, User, Calendar, Phone, MapPin, Mail,
     Download, FileText, TrendingUp, ShieldAlert,
-    CheckCircle2, XCircle, Trash2, Edit
+    CheckCircle2, XCircle, Trash2, Edit, BarChart3, LineChart as LineChartIcon
 } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import {
+    LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell
+} from 'recharts';
 
 export default function StudentProfilePage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = use(params);
@@ -26,6 +29,10 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
 
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Analytics State
+    const [activeProgressionType, setActiveProgressionType] = useState<string>("");
+    const [activeAnalysisDate, setActiveAnalysisDate] = useState<string>("");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -50,6 +57,16 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                     const examMap: Record<string, Exam> = {};
                     allExams.forEach(e => { if (e.id) examMap[e.id] = e; });
                     setExams(examMap);
+
+                    // Initialize Analytics Filters
+                    if (marksData.length > 0) {
+                        const types = Array.from(new Set(marksData.map(m => m.examId ? examMap[m.examId]?.name : "").filter(Boolean)));
+                        if (types.length > 0) setActiveProgressionType(types[0]);
+
+                        const dates = Array.from(new Set(marksData.map(m => m.examDate).filter(Boolean)))
+                            .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+                        if (dates.length > 0) setActiveAnalysisDate(dates[0]);
+                    }
                 } else {
                     router.push("/students");
                 }
@@ -61,6 +78,45 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
         };
         fetchData();
     }, [studentId, router]);
+
+    // Progression Chart Data
+    const progressionData = useMemo(() => {
+        if (!activeProgressionType) return [];
+
+        // Group entries by date for the same exam name
+        const dateGroups: Record<string, { totalObtained: number, totalMax: number }> = {};
+
+        marks.forEach(m => {
+            const eName = m.examId ? exams[m.examId]?.name : "";
+            if (eName === activeProgressionType && m.examDate) {
+                if (!dateGroups[m.examDate]) dateGroups[m.examDate] = { totalObtained: 0, totalMax: 0 };
+                dateGroups[m.examDate].totalObtained += m.marksObtained;
+                dateGroups[m.examDate].totalMax += m.maxMarks;
+            }
+        });
+
+        return Object.entries(dateGroups)
+            .map(([date, values]) => ({
+                date: new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }),
+                fullDate: date,
+                percentage: Math.round((values.totalObtained / values.totalMax) * 100)
+            }))
+            .sort((a, b) => new Date(a.fullDate).getTime() - new Date(b.fullDate).getTime());
+    }, [marks, activeProgressionType, exams]);
+
+    // Subject Analysis Data
+    const analysisData = useMemo(() => {
+        if (!activeAnalysisDate) return [];
+
+        return marks
+            .filter(m => m.examDate === activeAnalysisDate)
+            .map(m => ({
+                subject: m.subject,
+                score: m.marksObtained,
+                max: m.maxMarks,
+                percentage: Math.round((m.marksObtained / m.maxMarks) * 100)
+            }));
+    }, [marks, activeAnalysisDate]);
 
     const handleToggleStatus = async () => {
         if (!student) return;
@@ -98,6 +154,10 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
 
     if (!student) return null;
 
+    const examNames = Array.from(new Set(marks.map(m => m.examId ? exams[m.examId]?.name : "").filter(Boolean)));
+    const analysisDates = Array.from(new Set(marks.map(m => m.examDate).filter(Boolean)))
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-12">
             {/* Header / Breadcrumbs */}
@@ -124,8 +184,8 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                         onClick={handleToggleStatus}
                         disabled={actionLoading}
                         className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors ${student.status === 'Active'
-                                ? 'border-[#F5C6CB] text-[#D93025] hover:bg-[#FCE8E6]'
-                                : 'border-[#C3E6CB] text-[#1E8E3E] hover:bg-[#E6F4EA]'
+                            ? 'border-[#F5C6CB] text-[#D93025] hover:bg-[#FCE8E6]'
+                            : 'border-[#C3E6CB] text-[#1E8E3E] hover:bg-[#E6F4EA]'
                             }`}
                     >
                         {student.status === 'Active' ? <XCircle size={16} /> : <CheckCircle2 size={16} />}
@@ -198,6 +258,96 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                 {/* Main Content Area: Tabs/Sections */}
                 <div className="lg:col-span-2 space-y-6">
 
+                    {/* Analytics Section - PROGRESISON & SUBJECTS */}
+                    {marks.length > 0 && (
+                        <div className="grid grid-cols-1 gap-6">
+
+                            {/* Progression Chart */}
+                            <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp size={18} className="text-[#1A73E8]" />
+                                        <h3 className="font-medium text-[#202124]">Learning Progression</h3>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-[#9AA0A6] uppercase">Exam:</span>
+                                        <select
+                                            className="text-xs font-medium border border-[#DADCE0] rounded px-2 py-1 bg-[#F8F9FA] focus:outline-none focus:border-[#4285F4]"
+                                            value={activeProgressionType}
+                                            onChange={(e) => setActiveProgressionType(e.target.value)}
+                                        >
+                                            {examNames.map(name => <option key={name} value={name}>{name}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="h-[250px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={progressionData}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F3F4" />
+                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#5F6368', fontSize: 11 }} />
+                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5F6368', fontSize: 11 }} domain={[0, 100]} />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                formatter={(value) => [`${value}%`, 'Score']}
+                                            />
+                                            <Line
+                                                type="monotone"
+                                                dataKey="percentage"
+                                                stroke="#4285F4"
+                                                strokeWidth={3}
+                                                dot={{ r: 4, fill: '#4285F4', strokeWidth: 2, stroke: '#FFF' }}
+                                                activeDot={{ r: 6, fill: '#1A73E8' }}
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* Subject Comparison */}
+                            <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                                    <div className="flex items-center gap-2">
+                                        <BarChart3 size={18} className="text-[#4285F4]" />
+                                        <h3 className="font-medium text-[#202124]">Subject-wise Proficiency</h3>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-xs font-bold text-[#9AA0A6] uppercase">Date:</span>
+                                        <select
+                                            className="text-xs font-medium border border-[#DADCE0] rounded px-2 py-1 bg-[#F8F9FA] focus:outline-none focus:border-[#4285F4]"
+                                            value={activeAnalysisDate}
+                                            onChange={(e) => setActiveAnalysisDate(e.target.value)}
+                                        >
+                                            {analysisDates.map(date => (
+                                                <option key={date} value={date}>
+                                                    {new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="h-[250px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={analysisData} layout="vertical" margin={{ left: -20, right: 20 }}>
+                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F3F4" />
+                                            <XAxis type="number" domain={[0, 100]} hide />
+                                            <YAxis dataKey="subject" type="category" axisLine={false} tickLine={false} tick={{ fill: '#202124', fontSize: 11, fontWeight: 500 }} />
+                                            <Tooltip
+                                                cursor={{ fill: '#F8F9FA' }}
+                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                formatter={(value, name, props) => [`${props.payload.score} / ${props.payload.max} (${value}%)`, 'Performance']}
+                                            />
+                                            <Bar dataKey="percentage" radius={[0, 4, 4, 0]} barSize={20}>
+                                                {analysisData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.percentage >= 35 ? '#4285F4' : '#EA4335'} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Fees & Billing Section */}
                     <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
                         <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
@@ -247,12 +397,12 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                         </div>
                     </div>
 
-                    {/* Academic Performance Section */}
+                    {/* Academic Performance Section - DETAILED TABLE */}
                     <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
                         <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <TrendingUp size={18} className="text-[#1A73E8]" />
-                                <h3 className="font-medium text-[#202124]">Academic Performance</h3>
+                                <h3 className="font-medium text-[#202124]">Performance Details</h3>
                             </div>
                             <span className="text-xs font-medium text-[#5F6368] uppercase">{marks.length} Score Entries</span>
                         </div>
@@ -279,7 +429,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                                                     <tr key={m.id} className="hover:bg-[#F8F9FA]">
                                                         <td className="px-6 py-4">
                                                             <div className="font-medium text-[#202124]">{m.subject}</div>
-                                                            <div className="text-[11px] text-[#5F6368]">{examName}</div>
+                                                            <div className="text-[11px] text-[#5F6368]">{examName} ({new Date(m.examDate).toLocaleDateString()})</div>
                                                         </td>
                                                         <td className="px-6 py-4 text-right">
                                                             <span className="font-bold">{m.marksObtained}</span> / {m.maxMarks}
