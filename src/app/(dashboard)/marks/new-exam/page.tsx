@@ -77,7 +77,7 @@ export default function NewExamPage() {
                             <input
                                 type="text" required
                                 placeholder="e.g. Mid-Term Examination 2024"
-                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                 value={name} onChange={(e) => setName(e.target.value)}
                             />
                         </div>
@@ -87,7 +87,7 @@ export default function NewExamPage() {
                             <input
                                 type="text" required
                                 placeholder="e.g. 10th Standard"
-                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                 value={grade} onChange={(e) => setGrade(e.target.value)}
                             />
                         </div>
@@ -96,7 +96,7 @@ export default function NewExamPage() {
                             <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Date *</label>
                             <input
                                 type="date" required
-                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                 value={date} onChange={(e) => setDate(e.target.value)}
                             />
                         </div>
@@ -105,7 +105,7 @@ export default function NewExamPage() {
                             <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Max Marks per Subject *</label>
                             <input
                                 type="number" required
-                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                className="w-full px-4 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                 value={maxMarks} onChange={(e) => setMaxMarks(e.target.value)}
                             />
                         </div>
@@ -120,7 +120,7 @@ export default function NewExamPage() {
                                 <input
                                     type="text"
                                     placeholder="Add new subject..."
-                                    className="flex-1 px-3 py-2 bg-white border border-[#DADCE0] rounded-md text-sm focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]"
+                                    className="flex-1 px-3 py-2 bg-white border border-[#DADCE0] rounded-md text-sm focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
                                     value={newSubject}
                                     onChange={(e) => setNewSubject(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddSubject())}
@@ -128,7 +128,7 @@ export default function NewExamPage() {
                                 <button
                                     type="button"
                                     onClick={handleAddSubject}
-                                    className="p-2 bg-[#1A73E8] text-white rounded-md hover:bg-[#1557B0] transition-colors"
+                                    className="p-2 bg-[#4285F4] text-white rounded-md hover:bg-[#3367D6] transition-colors"
                                 >
                                     <Plus size={18} />
                                 </button>
@@ -161,7 +161,7 @@ export default function NewExamPage() {
                 <div className="flex items-center justify-end gap-3 pt-6 mt-6 border-t border-[#E8EAED]">
                     <Link
                         href="/marks"
-                        className="px-6 py-2.5 rounded-md text-[#1A73E8] font-medium hover:bg-[#E8F0FE] transition-colors"
+                        className="px-6 py-2.5 rounded-md text-[#4285F4] font-medium hover:bg-[#E8F0FE] transition-colors"
                     >
                         Cancel
                     </Link>

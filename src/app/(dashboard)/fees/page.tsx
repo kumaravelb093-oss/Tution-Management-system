@@ -60,7 +60,7 @@ export default function FeesPage() {
                         <input
                             type="text"
                             placeholder="Search by student, receipt number..."
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] shadow-sm transition-shadow"
+                            className="w-full pl-10 pr-4 py-3 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] shadow-sm transition-shadow"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -116,7 +116,7 @@ export default function FeesPage() {
                                         <td className="px-6 py-4 text-center">
                                             <button
                                                 onClick={() => pdfService.generateReceipt(payment)}
-                                                className="p-2 text-[#5F6368] hover:text-[#1A73E8] hover:bg-[#E8F0FE] rounded-full transition-colors inline-block"
+                                                className="p-2 text-[#5F6368] hover:text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-colors inline-block"
                                                 title="Download Receipt"
                                             >
                                                 <Download size={18} />

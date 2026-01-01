@@ -26,7 +26,7 @@ export const pdfService = {
         // 2. Receipt Info
         doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(26, 115, 232); // Google Blue #1A73E8
+        doc.setTextColor(66, 133, 244); // Google Blue #4285F4
         doc.text("FEE RECEIPT", 105, 55, { align: "center" });
 
         doc.setFontSize(10);
@@ -72,7 +72,7 @@ export const pdfService = {
             },
             footStyles: {
                 fillColor: [255, 255, 255],
-                textColor: [26, 115, 232], // Blue Total
+                textColor: [66, 133, 244], // Blue Total
                 fontStyle: 'bold',
                 lineWidth: 0.1,
                 lineColor: [218, 220, 224]

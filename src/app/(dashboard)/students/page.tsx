@@ -51,7 +51,7 @@ export default function StudentsPage() {
                     <input
                         type="text"
                         placeholder="Search by name, class, or phone..."
-                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] shadow-sm transition-shadow"
+                        className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] shadow-sm transition-shadow"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -111,8 +111,8 @@ export default function StudentsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${student.status === 'Active'
-                                                    ? 'bg-[#E6F4EA] text-[#1E8E3E]'
-                                                    : 'bg-[#FCE8E6] text-[#D93025]'
+                                                ? 'bg-[#E6F4EA] text-[#1E8E3E]'
+                                                : 'bg-[#FCE8E6] text-[#D93025]'
                                                 }`}>
                                                 {student.status}
                                             </span>

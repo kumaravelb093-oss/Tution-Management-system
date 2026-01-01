@@ -71,7 +71,7 @@ export default function AnalyticsPage() {
         return (
             <div className="h-[60vh] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-2 border-[#1A73E8] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-2 border-[#4285F4] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-[#5F6368] font-medium text-sm">Loading analytics...</p>
                 </div>
             </div>
@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
                             <p className="text-xs text-[#5F6368]">Monthly fee collection</p>
                         </div>
                         <div className="p-2 bg-[#E8F0FE] rounded-lg">
-                            <TrendingUp size={20} className="text-[#1A73E8]" />
+                            <TrendingUp size={20} className="text-[#4285F4]" />
                         </div>
                     </div>
                     <div className="h-[300px] w-full">
@@ -123,7 +123,7 @@ export default function AnalyticsPage() {
                                 />
                                 <Bar
                                     dataKey="amount"
-                                    fill="#1A73E8"
+                                    fill="#4285F4"
                                     radius={[4, 4, 0, 0]}
                                     barSize={40}
                                 />
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                         {studentStats.map((stat, index) => (
                             <div key={index} className="bg-[#F8F9FA] p-4 rounded-lg text-center border border-[#E8EAED]">
-                                <p className="text-2xl font-normal text-[#1A73E8]">{stat.count}</p>
+                                <p className="text-2xl font-normal text-[#4285F4]">{stat.count}</p>
                                 <p className="text-sm text-[#5F6368] mt-1">{stat.name}</p>
                             </div>
                         ))}

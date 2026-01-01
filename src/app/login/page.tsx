@@ -32,10 +32,10 @@ export default function LoginPage() {
             <div className="w-full max-w-md">
                 {/* Brand */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-[#1A73E8] rounded-2xl mb-4">
-                        <GraduationCap size={32} className="text-white" />
+                    <div className="w-12 h-12 bg-[#4285F4] rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+                        <GraduationCap size={28} className="text-white" />
                     </div>
-                    <h1 className="text-2xl font-normal text-[#202124]">Diamond Tuitions</h1>
+                    <h1 className="text-2xl font-semibold text-[#202124]">Welcome Back</h1>
                     <p className="text-[#5F6368] mt-1">Sign in to your account</p>
                 </div>
 
@@ -57,7 +57,7 @@ export default function LoginPage() {
                                 <input
                                     type="email"
                                     required
-                                    className="w-full pl-12 pr-4 py-3 text-[#202124] bg-white border border-[#DADCE0] rounded-lg focus:outline-none focus:border-[#1A73E8] focus:ring-2 focus:ring-[#E8F0FE] placeholder-[#9AA0A6]"
+                                    className="w-full pl-12 pr-4 py-3 text-[#202124] bg-white border border-[#DADCE0] rounded-lg focus:outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#E8F0FE] placeholder-[#9AA0A6]"
                                     placeholder="admin@diamond.edu"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -74,7 +74,7 @@ export default function LoginPage() {
                                 <input
                                     type="password"
                                     required
-                                    className="w-full pl-12 pr-4 py-3 text-[#202124] bg-white border border-[#DADCE0] rounded-lg focus:outline-none focus:border-[#1A73E8] focus:ring-2 focus:ring-[#E8F0FE] placeholder-[#9AA0A6]"
+                                    className="w-full pl-10 pr-4 py-3 border border-[#DADCE0] rounded-lg focus:outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#E8F0FE] transition-all text-[#202124]"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

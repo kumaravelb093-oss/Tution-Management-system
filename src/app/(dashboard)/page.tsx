@@ -83,8 +83,8 @@ export default function DashboardPage() {
               <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide">Total Students</p>
               <h3 className="text-3xl font-normal text-[#202124] mt-2">{totalStudents}</h3>
             </div>
-            <div className="p-2 bg-[#E8F0FE] rounded-lg">
-              <Users size={20} className="text-[#1A73E8]" />
+            <div className="w-10 h-10 bg-[#E8F0FE] rounded-full flex items-center justify-center">
+              <Users className="text-[#4285F4]" size={20} />
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2">
@@ -189,30 +189,18 @@ export default function DashboardPage() {
           <h3 className="font-medium text-[#202124] mb-4">Quick Actions</h3>
 
           <div className="space-y-3">
-            <Link href="/students/add" className="w-full flex items-center justify-between p-3 border border-[#E8EAED] rounded-lg hover:bg-[#F8F9FA] hover:border-[#DADCE0] transition-all group">
-              <div className="flex items-center gap-3">
-                <div className="bg-[#E8F0FE] p-2 rounded-md">
-                  <Users size={18} className="text-[#1A73E8]" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-[#202124]">Add Student</p>
-                  <p className="text-[11px] text-[#5F6368]">New admission</p>
-                </div>
+            <Link href="/students/add" className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#F8F9FA] text-[#5F6368] hover:text-[#4285F4] transition-colors group">
+              <div className="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center group-hover:bg-[#E8F0FE] transition-colors">
+                <Plus size={16} className="text-[#5F6368] group-hover:text-[#4285F4]" />
               </div>
-              <ArrowRight size={16} className="text-[#9AA0A6] group-hover:text-[#1A73E8]" />
+              <span className="text-sm font-medium">Add New Student</span>
             </Link>
 
-            <Link href="/fees/new" className="w-full flex items-center justify-between p-3 border border-[#E8EAED] rounded-lg hover:bg-[#F8F9FA] hover:border-[#DADCE0] transition-all group">
-              <div className="flex items-center gap-3">
-                <div className="bg-[#E6F4EA] p-2 rounded-md">
-                  <CreditCard size={18} className="text-[#1E8E3E]" />
-                </div>
-                <div>
-                  <p className="text-[13px] font-medium text-[#202124]">Collect Fees</p>
-                  <p className="text-[11px] text-[#5F6368]">Record payment</p>
-                </div>
+            <Link href="/fees/new" className="flex items-center gap-3 p-3 rounded-lg hover:bg-[#F8F9FA] text-[#5F6368] hover:text-[#4285F4] transition-colors group">
+              <div className="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center group-hover:bg-[#E8F0FE] transition-colors">
+                <CreditCard size={16} className="text-[#5F6368] group-hover:text-[#4285F4]" />
               </div>
-              <ArrowRight size={16} className="text-[#9AA0A6] group-hover:text-[#1A73E8]" />
+              <span className="text-sm font-medium">Record Payment</span>
             </Link>
 
             <Link href="/marks/new-exam" className="w-full flex items-center justify-between p-3 border border-[#E8EAED] rounded-lg hover:bg-[#F8F9FA] hover:border-[#DADCE0] transition-all group">

@@ -84,7 +84,7 @@ export default function AddStudentPage() {
                         <input
                             type="date"
                             name="dob"
-                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] transition-shadow"
+                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-shadow"
                             value={formData.dob}
                             onChange={handleChange}
                         />
@@ -96,7 +96,7 @@ export default function AddStudentPage() {
                         </label>
                         <select
                             name="gender"
-                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] transition-shadow"
+                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-shadow"
                             value={formData.gender}
                             onChange={handleChange}
                         >
@@ -115,7 +115,7 @@ export default function AddStudentPage() {
                             name="grade"
                             required
                             placeholder="e.g. 10th Standard"
-                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] transition-shadow placeholder-[#9AA0A6]"
+                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-shadow placeholder-[#9AA0A6]"
                             value={formData.grade}
                             onChange={handleChange}
                         />
@@ -134,7 +134,7 @@ export default function AddStudentPage() {
                             name="parentName"
                             required
                             placeholder="Father or Mother's Name"
-                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] transition-shadow placeholder-[#9AA0A6]"
+                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-shadow placeholder-[#9AA0A6]"
                             value={formData.parentName}
                             onChange={handleChange}
                         />
@@ -149,7 +149,7 @@ export default function AddStudentPage() {
                             name="phone"
                             required
                             placeholder="10-digit mobile number"
-                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] transition-shadow placeholder-[#9AA0A6]"
+                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-shadow placeholder-[#9AA0A6]"
                             value={formData.phone}
                             onChange={handleChange}
                         />
@@ -163,7 +163,7 @@ export default function AddStudentPage() {
                             name="address"
                             rows={3}
                             placeholder="Full residential address"
-                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] transition-shadow placeholder-[#9AA0A6]"
+                            className="w-full px-4 py-2.5 text-[#202124] bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] transition-shadow placeholder-[#9AA0A6]"
                             value={formData.address}
                             onChange={handleChange}
                         />
@@ -173,7 +173,7 @@ export default function AddStudentPage() {
                 <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#E8EAED]">
                     <Link
                         href="/students"
-                        className="px-6 py-2.5 rounded-md text-[#1A73E8] font-medium hover:bg-[#E8F0FE] transition-colors"
+                        className="px-6 py-2.5 rounded-md text-[#4285F4] font-medium hover:bg-[#E8F0FE] transition-colors"
                     >
                         Cancel
                     </Link>

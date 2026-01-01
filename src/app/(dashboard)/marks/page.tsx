@@ -48,7 +48,7 @@ export default function MarksPage() {
                 <input
                     type="text"
                     placeholder="Search exams..."
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] shadow-sm transition-shadow"
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] shadow-sm transition-shadow"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -81,7 +81,7 @@ export default function MarksPage() {
                                     </span>
                                 </div>
 
-                                <h3 className="text-lg font-medium text-[#202124] group-hover:text-[#1A73E8] transition-colors">{exam.name}</h3>
+                                <h3 className="text-lg font-medium text-[#202124] group-hover:text-[#4285F4] transition-colors">{exam.name}</h3>
 
                                 <div className="mt-4 space-y-2">
                                     <div className="flex justify-between text-sm">
@@ -97,7 +97,7 @@ export default function MarksPage() {
 
                             <Link
                                 href={`/marks/entry/${exam.id}`}
-                                className="p-4 bg-[#F8F9FA] border-t border-[#E8EAED] text-[#1A73E8] text-sm font-medium flex items-center justify-between group-hover:bg-[#E8F0FE] transition-colors"
+                                className="p-4 bg-[#F8F9FA] border-t border-[#E8EAED] text-[#4285F4] text-sm font-medium flex items-center justify-between group-hover:bg-[#E8F0FE] transition-colors"
                             >
                                 Enter Marks
                                 <ArrowRight size={16} />

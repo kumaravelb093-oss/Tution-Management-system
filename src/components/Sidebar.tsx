@@ -45,7 +45,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {/* Brand Header */}
         <div className="p-5 border-b border-[#E8EAED] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#1A73E8] rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#4285F4] rounded-lg flex items-center justify-center">
               <GraduationCap size={22} className="text-white" />
             </div>
             <div>
@@ -66,7 +66,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   href={item.href}
                   onClick={() => onClose()} // Close sidebar on mobile when link clicked
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg text-[14px] font-medium transition-colors ${isActive
-                    ? "bg-[#E8F0FE] text-[#1A73E8]"
+                    ? "bg-[#E8F0FE] text-[#4285F4]"
                     : "text-[#5F6368] hover:bg-[#F8F9FA] hover:text-[#202124]"
                     }`}
                 >
@@ -82,7 +82,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="p-3 border-t border-[#E8EAED]">
           <div className="px-4 py-3 mb-2">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-[#1A73E8] rounded-full flex items-center justify-center text-white font-medium text-sm">
+              <div className="w-9 h-9 bg-[#4285F4] rounded-full flex items-center justify-center text-white font-medium text-sm">
                 AD
               </div>
               <div className="flex-1 min-w-0">

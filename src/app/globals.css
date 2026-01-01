@@ -21,9 +21,10 @@
   --text-inverse: #FFFFFF;
 
   /* Google Blue - Primary Actions */
-  --primary: #1A73E8;
-  --primary-hover: #1557B0;
+  --primary: #4285F4;
+  --primary-hover: #3367D6;
   --primary-light: #E8F0FE;
+  /* Kept as tint, but could be adjusted if strictness required */
 
   /* Semantic Colors */
   --success: #1E8E3E;
@@ -41,7 +42,7 @@
   /* Form Inputs */
   --input-bg: #FFFFFF;
   --input-border: #DADCE0;
-  --input-border-focus: #1A73E8;
+  --input-border-focus: #4285F4;
   --input-text: #202124;
   --input-placeholder: #9AA0A6;
 
@@ -132,7 +133,8 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--input-border-focus) !important;
-  box-shadow: 0 0 0 2px var(--primary-light);
+  box-shadow: 0 0 0 1px var(--input-border-focus);
+  /* Clean 1px focus ring */
 }
 
 input:disabled,
@@ -165,18 +167,23 @@ label {
   color: var(--text-inverse);
   background-color: var(--primary);
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
+  /* More rectangular like Google */
   cursor: pointer;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
 }
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 1px 3px rgba(60, 64, 67, 0.3), 0 4px 8px 3px rgba(60, 64, 67, 0.15);
 }
 
 .btn-primary:active {
-  background-color: #1557B0;
+  background-color: #2A56C6;
+  box-shadow: none;
+  transform: translateY(1px);
+  /* Shift down effect */
 }
 
 .btn-primary:disabled {

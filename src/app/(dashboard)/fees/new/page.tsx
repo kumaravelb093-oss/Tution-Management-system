@@ -110,7 +110,7 @@ export default function NewPaymentPage() {
                                     <input
                                         type="text"
                                         placeholder="Search student..."
-                                        className="w-full pl-9 pr-3 py-2 border border-[#DADCE0] rounded-md text-sm focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]"
+                                        className="w-full pl-9 pr-3 py-2 border border-[#DADCE0] rounded-md text-sm focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -125,7 +125,7 @@ export default function NewPaymentPage() {
                                                 onClick={() => handleSelectStudent(student)}
                                                 className="w-full text-left p-3 hover:bg-[#F8F9FA] rounded-md border border-transparent hover:border-[#E8EAED] transition-all group"
                                             >
-                                                <p className="font-medium text-[#202124] text-sm group-hover:text-[#1A73E8]">{student.fullName}</p>
+                                                <p className="font-medium text-[#202124] text-sm group-hover:text-[#4285F4]">{student.fullName}</p>
                                                 <p className="text-xs text-[#5F6368]">{student.grade}</p>
                                             </button>
                                         ))
@@ -135,7 +135,7 @@ export default function NewPaymentPage() {
                     ) : (
                         <div className="p-6 flex flex-col items-center justify-center h-full text-center">
                             <div className="w-16 h-16 bg-[#E8F0FE] rounded-full flex items-center justify-center mb-4">
-                                <User size={32} className="text-[#1A73E8]" />
+                                <User size={32} className="text-[#4285F4]" />
                             </div>
                             <h3 className="text-lg font-medium text-[#202124]">{selectedStudent.fullName}</h3>
                             <p className="text-sm text-[#5F6368] mb-1">{selectedStudent.grade}</p>
@@ -143,7 +143,7 @@ export default function NewPaymentPage() {
 
                             <button
                                 onClick={() => setSelectedStudent(null)}
-                                className="text-sm text-[#1A73E8] font-medium hover:underline border border-[#DADCE0] px-4 py-2 rounded-md hover:bg-[#F8F9FA]"
+                                className="text-sm text-[#4285F4] font-medium hover:underline border border-[#DADCE0] px-4 py-2 rounded-md hover:bg-[#F8F9FA]"
                             >
                                 Change Student
                             </button>
@@ -166,7 +166,7 @@ export default function NewPaymentPage() {
                                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
                                         <select
                                             required
-                                            className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                            className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                             value={feeMonth} onChange={(e) => setFeeMonth(e.target.value)}
                                         >
                                             <option value="">Select Month</option>
@@ -181,7 +181,7 @@ export default function NewPaymentPage() {
                                     <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Fee Year *</label>
                                     <input
                                         type="number" required
-                                        className="w-full px-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                        className="w-full px-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                         value={feeYear} onChange={(e) => setFeeYear(Number(e.target.value))}
                                     />
                                 </div>
@@ -193,7 +193,7 @@ export default function NewPaymentPage() {
                                     <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={20} />
                                     <input
                                         type="number" required placeholder="0.00"
-                                        className="w-full pl-10 pr-3 py-3 bg-white border border-[#DADCE0] rounded-md text-2xl font-normal text-[#202124] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]"
+                                        className="w-full pl-10 pr-3 py-3 bg-white border border-[#DADCE0] rounded-md text-2xl font-normal text-[#202124] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
                                         value={amount} onChange={(e) => setAmount(e.target.value)}
                                     />
                                 </div>
@@ -204,7 +204,7 @@ export default function NewPaymentPage() {
                                     <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Payment Date *</label>
                                     <input
                                         type="date" required
-                                        className="w-full px-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                        className="w-full px-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                         value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)}
                                     />
                                 </div>
@@ -214,14 +214,14 @@ export default function NewPaymentPage() {
                                 <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Remarks (Optional)</label>
                                 <textarea
                                     rows={2} placeholder="Add a note..."
-                                    className="w-full px-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8] text-[#202124]"
+                                    className="w-full px-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
                                     value={remarks} onChange={(e) => setRemarks(e.target.value)}
                                 />
                             </div>
                         </div>
 
                         <div className="p-4 bg-[#F8F9FA] border-t border-[#E8EAED] flex justify-end gap-3 rounded-b-lg">
-                            <Link href="/fees" className="px-5 py-2.5 rounded-md text-[#1A73E8] font-medium hover:bg-[#E8F0FE] transition-colors">
+                            <Link href="/fees" className="px-5 py-2.5 rounded-md text-[#4285F4] font-medium hover:bg-[#E8F0FE] transition-colors">
                                 Cancel
                             </Link>
                             <button

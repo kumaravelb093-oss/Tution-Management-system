@@ -116,7 +116,7 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
         return (
             <div className="h-[60vh] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-2 border-[#1A73E8] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-2 border-[#4285F4] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-[#5F6368] font-medium text-sm">Loading exam datasheet...</p>
                 </div>
             </div>
@@ -174,7 +174,7 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
                     <input
                         type="text"
                         placeholder="Filter students..."
-                        className="w-full pl-10 pr-4 py-2 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]"
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -198,7 +198,7 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
                                         {subject}
                                     </th>
                                 ))}
-                                <th className="px-4 py-4 text-center text-[12px] font-medium text-[#1A73E8] uppercase tracking-wider border-b border-r border-[#E8EAED] min-w-[100px] bg-[#E8F0FE]/50">Total</th>
+                                <th className="px-4 py-4 text-center text-[12px] font-medium text-[#4285F4] uppercase tracking-wider border-b border-r border-[#E8EAED] min-w-[100px] bg-[#E8F0FE]/50">Total</th>
                                 <th className="px-4 py-4 text-center text-[12px] font-medium text-[#1E8E3E] uppercase tracking-wider border-b border-[#E8EAED] min-w-[100px] bg-[#E6F4EA]/50">%</th>
                             </tr>
                         </thead>
@@ -222,14 +222,14 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
                                                     type="number"
                                                     min="0"
                                                     max={exam.maxMarks}
-                                                    className="w-full text-center py-1.5 rounded border border-transparent hover:border-[#DADCE0] focus:border-[#1A73E8] focus:bg-[#E8F0FE] focus:ring-1 focus:ring-[#1A73E8] transition-all text-[#202124] font-medium"
+                                                    className="w-full text-center py-1.5 rounded border border-transparent hover:border-[#DADCE0] focus:border-[#4285F4] focus:bg-[#E8F0FE] focus:ring-1 focus:ring-[#4285F4] transition-all text-[#202124] font-medium"
                                                     value={marks[student.id!]?.[subject] ?? ""}
                                                     onChange={(e) => handleMarkChange(student.id!, subject, e.target.value)}
                                                     placeholder="-"
                                                 />
                                             </td>
                                         ))}
-                                        <td className="px-4 py-3 border-b border-r border-[#E8EAED] text-center font-bold text-[#1A73E8] bg-[#F8F9FA]">
+                                        <td className="px-4 py-3 border-b border-r border-[#E8EAED] text-center font-bold text-[#4285F4] bg-[#F8F9FA]">
                                             {total}
                                         </td>
                                         <td className="px-4 py-3 border-b border-[#E8EAED] text-center">
