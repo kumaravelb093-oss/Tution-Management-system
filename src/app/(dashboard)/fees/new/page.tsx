@@ -119,7 +119,7 @@ export default function NewPaymentPage() {
                         <div className="flex flex-col h-full">
                             <div className="p-4 border-b border-[#E8EAED]">
                                 <div className="relative">
-                                    {!searchTerm && <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={16} />}
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={16} />
                                     <input
                                         type="text"
                                         placeholder="Search student..."
@@ -176,7 +176,7 @@ export default function NewPaymentPage() {
                                 <div>
                                     <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Fee Month *</label>
                                     <div className="relative">
-                                        {!feeMonth && <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />}
+                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
                                         <select
                                             required
                                             className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
@@ -203,7 +203,7 @@ export default function NewPaymentPage() {
                             <div>
                                 <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Amount Paid *</label>
                                 <div className="relative">
-                                    {!amount && <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={20} />}
+                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={20} />
                                     <input
                                         type="number" required placeholder="0.00"
                                         className="w-full pl-10 pr-3 py-3 bg-white border border-[#DADCE0] rounded-md text-2xl font-normal text-[#202124] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"

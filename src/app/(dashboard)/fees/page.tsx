@@ -65,7 +65,7 @@ export default function FeesPage() {
 
                 <div className="md:col-span-2 flex items-center">
                     <div className="relative w-full">
-                        {!searchTerm && <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />}
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
                         <input
                             type="text"
                             placeholder="Search by student, receipt number..."

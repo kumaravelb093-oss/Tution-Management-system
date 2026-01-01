@@ -3,24 +3,53 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { studentService, Student } from "@/services/studentService";
-import { ArrowLeft, User, Calendar, Phone, MapPin, Mail } from "lucide-react";
+import { feeService, Payment } from "@/services/feeService";
+import { marksService, MarksEntry, Exam } from "@/services/marksService";
+import { pdfService } from "@/services/pdfService";
+import {
+    ArrowLeft, User, Calendar, Phone, MapPin, Mail,
+    Download, FileText, TrendingUp, ShieldAlert,
+    CheckCircle2, XCircle, Trash2, Edit
+} from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 
 export default function StudentProfilePage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = use(params);
     const router = useRouter();
+
     const [student, setStudent] = useState<Student | null>(null);
+    const [payments, setPayments] = useState<Payment[]>([]);
+    const [marks, setMarks] = useState<MarksEntry[]>([]);
+    const [exams, setExams] = useState<Record<string, Exam>>({});
+
     const [loading, setLoading] = useState(true);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
-        const fetchStudent = async () => {
+        const fetchData = async () => {
             try {
+                // Fetch Student
                 const docRef = doc(db, "students", studentId);
                 const docSnap = await getDoc(docRef);
+
                 if (docSnap.exists()) {
                     setStudent({ id: docSnap.id, ...docSnap.data() } as Student);
+
+                    // Fetch Payments
+                    const paymentData = await feeService.getPaymentsByStudent(studentId);
+                    setPayments(paymentData);
+
+                    // Fetch Marks
+                    const marksData = await marksService.getMarksByStudent(studentId);
+                    setMarks(marksData);
+
+                    // Fetch Exams for mapping
+                    const allExams = await marksService.getExams();
+                    const examMap: Record<string, Exam> = {};
+                    allExams.forEach(e => { if (e.id) examMap[e.id] = e; });
+                    setExams(examMap);
                 } else {
                     router.push("/students");
                 }
@@ -30,108 +59,249 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                 setLoading(false);
             }
         };
-        fetchStudent();
+        fetchData();
     }, [studentId, router]);
 
+    const handleToggleStatus = async () => {
+        if (!student) return;
+        setActionLoading(true);
+        const newStatus = student.status === "Active" ? "Inactive" : "Active";
+        try {
+            const docRef = doc(db, "students", studentId);
+            await updateDoc(docRef, { status: newStatus });
+            setStudent({ ...student, status: newStatus as any });
+        } catch (error) {
+            console.error(error);
+            alert("Failed to update status");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm("Are you sure you want to delete this student? All records will be lost.")) return;
+        setActionLoading(true);
+        try {
+            await studentService.deleteStudent(studentId);
+            router.push("/students");
+        } catch (error) {
+            console.error(error);
+            alert("Failed to delete student");
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
     if (loading) {
-        return <div className="p-12 text-center text-[#5F6368]">Loading profile...</div>;
+        return <div className="p-12 text-center text-[#5F6368]">Loading comprehensive profile...</div>;
     }
 
     if (!student) return null;
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex items-center gap-4">
-                <Link href="/students" className="p-2 hover:bg-[#E8EAED] rounded-full text-[#5F6368] transition-colors">
-                    <ArrowLeft size={22} />
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-normal text-[#202124]">{student.fullName}</h1>
-                    <p className="text-sm text-[#5F6368]">Student Profile & Performance</p>
+        <div className="max-w-6xl mx-auto space-y-6 pb-12">
+            {/* Header / Breadcrumbs */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                    <Link href="/students" className="p-2 hover:bg-[#E8EAED] rounded-full text-[#5F6368] transition-colors">
+                        <ArrowLeft size={22} />
+                    </Link>
+                    <div>
+                        <h1 className="text-2xl font-normal text-[#202124]">{student.fullName}</h1>
+                        <p className="text-sm text-[#5F6368]">ID: <span className="font-bold text-[#4285F4]">{student.studentCode}</span></p>
+                    </div>
                 </div>
-                <div className="ml-auto">
+
+                <div className="flex items-center gap-2">
                     <Link
                         href={`/students/edit/${studentId}`}
-                        className="px-4 py-2 border border-[#DADCE0] rounded-md text-[#202124] text-sm font-medium hover:bg-[#F8F9FA] transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 border border-[#DADCE0] rounded-md text-[#202124] text-sm font-medium hover:bg-[#F8F9FA] transition-colors"
                     >
-                        Edit Profile
+                        <Edit size={16} />
+                        <span>Edit Info</span>
                     </Link>
+                    <button
+                        onClick={handleToggleStatus}
+                        disabled={actionLoading}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md border text-sm font-medium transition-colors ${student.status === 'Active'
+                                ? 'border-[#F5C6CB] text-[#D93025] hover:bg-[#FCE8E6]'
+                                : 'border-[#C3E6CB] text-[#1E8E3E] hover:bg-[#E6F4EA]'
+                            }`}
+                    >
+                        {student.status === 'Active' ? <XCircle size={16} /> : <CheckCircle2 size={16} />}
+                        <span>Set {student.status === 'Active' ? 'Inactive' : 'Active'}</span>
+                    </button>
+                    <button
+                        onClick={handleDelete}
+                        disabled={actionLoading}
+                        className="p-2 text-[#D93025] hover:bg-[#FCE8E6] rounded-md transition-colors"
+                        title="Delete Student"
+                    >
+                        <Trash2 size={20} />
+                    </button>
                 </div>
             </div>
 
-            <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
-                <div className="p-6 border-b border-[#E8EAED] bg-[#F8F9FA] flex gap-4 items-center">
-                    <div className="w-16 h-16 rounded-full bg-[#E8F0FE] flex items-center justify-center text-[#1A73E8] text-2xl font-medium">
-                        {student.fullName.charAt(0)}
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-medium text-[#202124]">{student.fullName}</h2>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-bold text-[#4285F4]">{student.studentCode || "DT-Pending"}</span>
-                            <span className="text-sm text-[#5F6368]">• {student.grade}</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full ${student.status === 'Active' ? 'bg-[#E6F4EA] text-[#1E8E3E]' : 'bg-[#FCE8E6] text-[#D93025]'}`}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                {/* Left Sidebar: Key Details */}
+                <div className="lg:col-span-1 space-y-6">
+                    <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-24 h-24 rounded-full bg-[#E8F0FE] flex items-center justify-center text-[#1A73E8] text-4xl font-normal mb-4">
+                                {student.fullName.charAt(0)}
+                            </div>
+                            <h2 className="text-xl font-medium text-[#202124]">{student.fullName}</h2>
+                            <p className="text-[#5F6368]">{student.grade}</p>
+                            <span className={`mt-3 px-3 py-1 rounded-full text-xs font-medium ${student.status === 'Active' ? 'bg-[#E6F4EA] text-[#1E8E3E]' : 'bg-[#FCE8E6] text-[#D93025]'}`}>
                                 {student.status}
                             </span>
                         </div>
-                    </div>
-                </div>
 
-                <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-[#5F6368] uppercase tracking-wide">Contact Details</h3>
-
-                        <div className="flex items-start gap-3">
-                            <Phone size={18} className="text-[#9AA0A6] mt-0.5" />
-                            <div>
-                                <p className="text-sm font-medium text-[#202124]">{student.phone}</p>
-                                <p className="text-xs text-[#5F6368]">Parent: {student.parentName}</p>
+                        <div className="mt-8 space-y-5 border-t border-[#E8EAED] pt-6">
+                            <div className="flex items-start gap-3">
+                                <Phone size={18} className="text-[#9AA0A6] mt-0.5" />
+                                <div>
+                                    <p className="text-sm font-medium text-[#202124]">{student.phone}</p>
+                                    <p className="text-xs text-[#5F6368]">Parent: {student.parentName}</p>
+                                </div>
                             </div>
-                        </div>
-
-                        {student.email && (
+                            {student.email && (
+                                <div className="flex items-center gap-3">
+                                    <Mail size={18} className="text-[#9AA0A6]" />
+                                    <p className="text-sm text-[#202124]">{student.email}</p>
+                                </div>
+                            )}
                             <div className="flex items-center gap-3">
-                                <Mail size={18} className="text-[#9AA0A6]" />
-                                <p className="text-sm text-[#202124]">{student.email}</p>
+                                <Calendar size={18} className="text-[#9AA0A6]" />
+                                <p className="text-sm text-[#202124]">Born: {new Date(student.dob).toLocaleDateString()}</p>
                             </div>
-                        )}
-
-                        <div className="flex items-start gap-3">
-                            <MapPin size={18} className="text-[#9AA0A6] mt-0.5" />
-                            <p className="text-sm text-[#202124] whitespace-pre-line">{student.address}</p>
+                            <div className="flex items-start gap-3">
+                                <MapPin size={18} className="text-[#9AA0A6] mt-0.5" />
+                                <p className="text-sm text-[#202124] leading-relaxed">{student.address}</p>
+                            </div>
+                            <div className="flex items-center gap-3 pt-2 text-[#5F6368]">
+                                <TrendingUp size={18} />
+                                <p className="text-xs">Joined {new Date(student.joiningDate).toLocaleDateString()}</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-medium text-[#5F6368] uppercase tracking-wide">Academic Info</h3>
-
-                        <div className="flex items-center gap-3">
-                            <Calendar size={18} className="text-[#9AA0A6]" />
-                            <div>
-                                <p className="text-sm font-medium text-[#202124]">Joined {new Date(student.joiningDate).toLocaleDateString()}</p>
-                                <p className="text-xs text-[#5F6368]">Admission Date</p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-3">
-                            <User size={18} className="text-[#9AA0A6]" />
-                            <div>
-                                <p className="text-sm font-medium text-[#202124]">{student.gender}</p>
-                                <p className="text-xs text-[#5F6368]">Gender</p>
-                            </div>
+                    <div className="card-base bg-[#E8F0FE] border-none p-6 rounded-lg text-center">
+                        <p className="text-xs font-medium text-[#1A73E8] uppercase tracking-wide">Quick Actions</p>
+                        <div className="grid grid-cols-1 gap-3 mt-4">
+                            <Link href={`/fees/new?studentId=${studentId}`} className="btn-primary w-full py-2.5 text-sm">Record Fee Payment</Link>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Contextual Actions (Quick Links) */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Link href={`/fees?search=${student.fullName}`} className="p-4 bg-white border border-[#E8EAED] rounded-lg hover:shadow-md transition-shadow text-center">
-                    <p className="text-[#4285F4] font-medium text-sm">Fee History</p>
-                </Link>
-                <Link href={`/fees/new?studentId=${studentId}`} className="p-4 bg-white border border-[#E8EAED] rounded-lg hover:shadow-md transition-shadow text-center">
-                    <p className="text-[#4285F4] font-medium text-sm">Record Payment</p>
-                </Link>
+                {/* Main Content Area: Tabs/Sections */}
+                <div className="lg:col-span-2 space-y-6">
+
+                    {/* Fees & Billing Section */}
+                    <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <ShieldAlert size={18} className="text-[#F9AB00]" />
+                                <h3 className="font-medium text-[#202124]">Fee Collection History</h3>
+                            </div>
+                            <span className="text-xs font-medium text-[#5F6368] uppercase">{payments.length} Records</span>
+                        </div>
+
+                        <div className="p-0">
+                            {payments.length === 0 ? (
+                                <div className="p-8 text-center text-[#5F6368] italic text-sm">No payment history found for this student.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-[#FFFFFF] border-b border-[#E8EAED]">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left font-medium text-[#5F6368]">Month / Year</th>
+                                                <th className="px-6 py-3 text-right font-medium text-[#5F6368]">Amount</th>
+                                                <th className="px-6 py-3 text-center font-medium text-[#5F6368]">Receipt</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[#E8EAED]">
+                                            {payments.map((p) => (
+                                                <tr key={p.id} className="hover:bg-[#F8F9FA]">
+                                                    <td className="px-6 py-4">
+                                                        <div className="font-medium text-[#202124]">{p.feeMonth} {p.feeYear}</div>
+                                                        <div className="text-[11px] text-[#9AA0A6]">{p.paymentDate}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-medium text-[#1E8E3E]">₹{p.amount.toLocaleString()}</td>
+                                                    <td className="px-6 py-4 text-center">
+                                                        <button
+                                                            onClick={() => pdfService.generateReceipt(p)}
+                                                            className="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
+                                                            title="Download PDF"
+                                                        >
+                                                            <Download size={16} />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Academic Performance Section */}
+                    <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <TrendingUp size={18} className="text-[#1A73E8]" />
+                                <h3 className="font-medium text-[#202124]">Academic Performance</h3>
+                            </div>
+                            <span className="text-xs font-medium text-[#5F6368] uppercase">{marks.length} Score Entries</span>
+                        </div>
+
+                        <div className="p-0">
+                            {marks.length === 0 ? (
+                                <div className="p-8 text-center text-[#5F6368] italic text-sm">No exam marks recorded yet.</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-[#FFFFFF] border-b border-[#E8EAED]">
+                                            <tr>
+                                                <th className="px-6 py-3 text-left font-medium text-[#5F6368]">Exam / Subject</th>
+                                                <th className="px-6 py-3 text-right font-medium text-[#5F6368]">Score</th>
+                                                <th className="px-6 py-3 text-center font-medium text-[#5F6368]">Grade</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-[#E8EAED]">
+                                            {marks.map((m) => {
+                                                const examName = m.examId ? exams[m.examId]?.name : "Unknown Exam";
+                                                const percentage = marksService.calculatePercentage(m.marksObtained, m.maxMarks);
+                                                const grade = marksService.calculateGrade(percentage);
+                                                return (
+                                                    <tr key={m.id} className="hover:bg-[#F8F9FA]">
+                                                        <td className="px-6 py-4">
+                                                            <div className="font-medium text-[#202124]">{m.subject}</div>
+                                                            <div className="text-[11px] text-[#5F6368]">{examName}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <span className="font-bold">{m.marksObtained}</span> / {m.maxMarks}
+                                                            <div className="text-[10px] text-[#9AA0A6]">{percentage}%</div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${percentage >= 35 ? 'bg-[#E6F4EA] text-[#1E8E3E]' : 'bg-[#FCE8E6] text-[#D93025]'
+                                                                }`}>
+                                                                {grade}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     );
