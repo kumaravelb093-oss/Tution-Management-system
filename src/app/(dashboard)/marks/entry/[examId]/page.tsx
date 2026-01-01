@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useState, use } from "react";
 import { marksService, Exam, MarksEntry } from "@/services/marksService";
 import { studentService, Student } from "@/services/studentService";
-import { ArrowLeft, Save, Loader2, Search, Calculator } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Search, Calculator, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -14,6 +14,8 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
     const [exam, setExam] = useState<Exam | null>(null);
     const [students, setStudents] = useState<Student[]>([]);
     const [marks, setMarks] = useState<Record<string, Record<string, number>>>({}); // studentId -> subject -> marks
+    // Distinguish between entry date (createdAt) and exam conduct date (examDate)
+    const [examDate, setExamDate] = useState(new Date().toISOString().split('T')[0]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [savingSuccess, setSavingSuccess] = useState(false);
@@ -33,14 +35,21 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
             setExam(examData);
             setStudents(studentsData);
 
-            // Initialize marks from existing entries
-            if (examData && examData.entries) {
-                const marksMap: Record<string, Record<string, number>> = {};
-                examData.entries.forEach((entry) => {
-                    if (!marksMap[entry.studentId]) marksMap[entry.studentId] = {};
-                    marksMap[entry.studentId][entry.subject] = entry.marksObtained;
-                });
-                setMarks(marksMap);
+            if (examData) {
+                // Default examDate to the exam's creation date if available, or stay with today
+                if (examData.date) setExamDate(examData.date);
+
+                // Initialize marks from existing entries
+                if (examData.entries) {
+                    const marksMap: Record<string, Record<string, number>> = {};
+                    examData.entries.forEach((entry) => {
+                        if (!marksMap[entry.studentId]) marksMap[entry.studentId] = {};
+                        marksMap[entry.studentId][entry.subject] = entry.marksObtained;
+                        // Synchronize examDate with existing records if possible (picking first one)
+                        if (entry.examDate) setExamDate(entry.examDate);
+                    });
+                    setMarks(marksMap);
+                }
             }
         } catch (error) {
             console.error(error);
@@ -79,7 +88,8 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
                         studentName: student.fullName,
                         subject,
                         marksObtained,
-                        maxMarks: exam.maxMarks
+                        maxMarks: exam.maxMarks,
+                        examDate: examDate // Explicitly saving the conducted date
                     });
                 });
             });
@@ -134,7 +144,9 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
                     <div>
                         <h1 className="text-2xl font-normal text-[#202124]">{exam.name}</h1>
                         <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm text-[#5F6368]">{new Date(exam.date).toLocaleDateString()}</span>
+                            <span className="text-sm font-medium text-[#1A73E8] bg-[#E8F0FE] px-2 py-0.5 rounded">
+                                {exam.grade}
+                            </span>
                             <span className="text-xs text-[#9AA0A6]">•</span>
                             <span className="text-sm text-[#5F6368]">Max: {exam.maxMarks} per subject</span>
                         </div>
@@ -167,13 +179,34 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
                 </div>
             </div>
 
+            {/* Exam Date Selector & Reassurance (New Section) */}
+            <div className="card-base bg-white p-4 border border-[#E8EAED] rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="flex flex-col gap-1.5 flex-1 max-w-xs">
+                    <label className="text-[12px] font-medium text-[#5F6368] uppercase tracking-wider flex items-center gap-2">
+                        <Calendar size={14} className="text-[#4285F4]" />
+                        Exam Date (Day exam was conducted)
+                    </label>
+                    <input
+                        type="date"
+                        className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#DADCE0] rounded-md text-[#202124] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] font-medium"
+                        value={examDate}
+                        onChange={(e) => setExamDate(e.target.value)}
+                    />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                    <p className="text-sm text-[#202124] font-medium">You can enter marks anytime, even after the exam.</p>
+                    <p className="text-xs text-[#5F6368]">This date correctly classifies when the student actually wrote the paper.</p>
+                </div>
+            </div>
+
             {/* Toolbar */}
             <div className="flex items-center gap-4 shrink-0">
                 <div className="relative max-w-md w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
                     <input
                         type="text"
-                        placeholder="Filter students..."
+                        placeholder="Filter students by name..."
                         className="w-full pl-10 pr-4 py-2 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}

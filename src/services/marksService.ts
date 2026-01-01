@@ -23,6 +23,7 @@ export interface MarksEntry {
     subject: string;
     marksObtained: number;
     maxMarks: number;
+    examDate: string; // The day the subject exam was conducted
     createdAt?: any;
 }
 
@@ -117,7 +118,6 @@ export const marksService = {
             entries.forEach(entry => {
                 // Ensure examId is present or handle gracefully
                 if (!entry.examId) {
-                    // console.warn("Missing examId in saveMarks entry", entry);
                     return;
                 }
                 const docId = `${entry.examId}_${entry.studentId}_${entry.subject}`;
@@ -200,9 +200,6 @@ export const marksService = {
 
     // Alias for getGrade
     calculateGrade: (percentage: number) => {
-        // Since marksService is const, we can't reference it easily without recursion risk if improperly scoped, 
-        // but 'marksService.getGrade' should work if we rely on hoisted exported var or just copy logic.
-        // Copying logic is safest and simplest for "calculateGrade".
         if (percentage >= 90) return "A+";
         if (percentage >= 80) return "A";
         if (percentage >= 70) return "B+";
