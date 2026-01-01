@@ -118,12 +118,14 @@ export default function NewPaymentPage() {
                     {!selectedStudent ? (
                         <div className="flex flex-col h-full">
                             <div className="p-4 border-b border-[#E8EAED]">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={16} />
+                                <div className="input-group">
+                                    <div className="input-group-icon">
+                                        <Search size={16} />
+                                    </div>
                                     <input
                                         type="text"
                                         placeholder="Search student..."
-                                        className="w-full pl-9 pr-3 py-2 border border-[#DADCE0] rounded-md text-sm focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
+                                        className="input-group-field"
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
@@ -175,11 +177,13 @@ export default function NewPaymentPage() {
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Fee Month *</label>
-                                    <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                                    <div className="input-group">
+                                        <div className="input-group-icon">
+                                            <Calendar size={18} />
+                                        </div>
                                         <select
                                             required
-                                            className="w-full pl-10 pr-3 py-2.5 bg-white border border-[#DADCE0] rounded-md focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] text-[#202124]"
+                                            className="input-group-field"
                                             value={feeMonth} onChange={(e) => setFeeMonth(e.target.value)}
                                         >
                                             <option value="">Select Month</option>
@@ -202,11 +206,13 @@ export default function NewPaymentPage() {
 
                             <div>
                                 <label className="block text-[13px] font-medium text-[#5F6368] mb-2 uppercase tracking-wide">Amount Paid *</label>
-                                <div className="relative">
-                                    <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={20} />
+                                <div className="input-group">
+                                    <div className="input-group-icon">
+                                        <IndianRupee size={20} />
+                                    </div>
                                     <input
                                         type="number" required placeholder="0.00"
-                                        className="w-full pl-10 pr-3 py-3 bg-white border border-[#DADCE0] rounded-md text-2xl font-normal text-[#202124] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
+                                        className="input-group-field text-2xl font-normal"
                                         value={amount} onChange={(e) => setAmount(e.target.value)}
                                     />
                                 </div>

@@ -52,12 +52,14 @@ export default function LoginPage() {
                             <label className="block text-[14px] font-medium text-[#202124] mb-2">
                                 Email Address
                             </label>
-                            <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                            <div className="input-group">
+                                <div className="input-group-icon">
+                                    <Mail size={18} />
+                                </div>
                                 <input
                                     type="email"
                                     required
-                                    className="w-full pl-12 pr-4 py-3 text-[#202124] bg-white border border-[#DADCE0] rounded-lg focus:outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#E8F0FE] placeholder-[#9AA0A6]"
+                                    className="input-group-field"
                                     placeholder="admin@diamond.edu"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -69,12 +71,14 @@ export default function LoginPage() {
                             <label className="block text-[14px] font-medium text-[#202124] mb-2">
                                 Password
                             </label>
-                            <div className="relative">
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                            <div className="input-group">
+                                <div className="input-group-icon">
+                                    <Lock size={18} />
+                                </div>
                                 <input
                                     type="password"
                                     required
-                                    className="w-full pl-10 pr-4 py-3 border border-[#DADCE0] rounded-lg focus:outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#E8F0FE] transition-all text-[#202124]"
+                                    className="input-group-field"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

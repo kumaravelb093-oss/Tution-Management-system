@@ -110,6 +110,7 @@ p {
 /* ============================================
    FORM INPUTS - HIGH VISIBILITY (CRITICAL)
    ============================================ */
+/* Standard Inputs */
 input,
 textarea,
 select {
@@ -134,7 +135,47 @@ select:focus {
   outline: none;
   border-color: var(--input-border-focus) !important;
   box-shadow: 0 0 0 1px var(--input-border-focus);
-  /* Clean 1px focus ring */
+}
+
+/* Enterprise Input Group (Preferred Pattern: Icon outside text area) */
+.input-group {
+  display: flex;
+  align-items: center;
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.input-group:focus-within {
+  border-color: var(--input-border-focus) !important;
+  box-shadow: 0 0 0 1px var(--input-border-focus);
+}
+
+.input-group-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  color: var(--text-muted);
+  background-color: var(--background-secondary);
+  border-right: 1px solid var(--border);
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.input-group-field {
+  flex: 1;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 12px 14px !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.input-group-field:focus {
+  box-shadow: none !important;
 }
 
 input:disabled,

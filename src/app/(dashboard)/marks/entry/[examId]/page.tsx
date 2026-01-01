@@ -183,15 +183,19 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
             <div className="card-base bg-white p-4 border border-[#E8EAED] rounded-lg shadow-sm flex flex-col sm:flex-row sm:items-center gap-6">
                 <div className="flex flex-col gap-1.5 flex-1 max-w-xs">
                     <label className="text-[12px] font-medium text-[#5F6368] uppercase tracking-wider flex items-center gap-2">
-                        <Calendar size={14} className="text-[#4285F4]" />
                         Exam Date (Day exam was conducted)
                     </label>
-                    <input
-                        type="date"
-                        className="w-full px-3 py-2 bg-[#F8F9FA] border border-[#DADCE0] rounded-md text-[#202124] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] font-medium"
-                        value={examDate}
-                        onChange={(e) => setExamDate(e.target.value)}
-                    />
+                    <div className="input-group">
+                        <div className="input-group-icon bg-[#E8F0FE]/50 border-r-0">
+                            <Calendar size={14} className="text-[#4285F4]" />
+                        </div>
+                        <input
+                            type="date"
+                            className="input-group-field font-medium"
+                            value={examDate}
+                            onChange={(e) => setExamDate(e.target.value)}
+                        />
+                    </div>
                 </div>
 
                 <div className="flex flex-col gap-1">
@@ -202,12 +206,14 @@ export default function MarksEntryPage({ params }: { params: Promise<{ examId: s
 
             {/* Toolbar */}
             <div className="flex items-center gap-4 shrink-0">
-                <div className="relative max-w-md w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                <div className="input-group max-w-md w-full">
+                    <div className="input-group-icon">
+                        <Search size={18} />
+                    </div>
                     <input
                         type="text"
                         placeholder="Filter students by name..."
-                        className="w-full pl-10 pr-4 py-2 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4]"
+                        className="input-group-field"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />

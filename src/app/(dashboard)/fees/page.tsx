@@ -64,12 +64,14 @@ export default function FeesPage() {
                 </div>
 
                 <div className="md:col-span-2 flex items-center">
-                    <div className="relative w-full">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" size={18} />
+                    <div className="input-group w-full shadow-sm">
+                        <div className="input-group-icon">
+                            <Search size={18} />
+                        </div>
                         <input
                             type="text"
                             placeholder="Search by student, receipt number..."
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-[#DADCE0] rounded-lg text-[#202124] placeholder-[#9AA0A6] focus:outline-none focus:border-[#4285F4] focus:ring-1 focus:ring-[#4285F4] shadow-sm transition-shadow"
+                            className="input-group-field"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
