@@ -77,13 +77,13 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="card-base bg-white hover:shadow-md transition-shadow">
+        <Link href="/students" className="card-base bg-white hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer block group">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide">Total Students</p>
-              <h3 className="text-3xl font-normal text-[#202124] mt-2">{totalStudents}</h3>
+              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide group-hover:text-[#1A73E8] transition-colors">Total Students</p>
+              <h3 className="text-3xl font-normal text-[#202124] mt-2 group-hover:text-[#1A73E8] transition-colors">{totalStudents}</h3>
             </div>
-            <div className="w-10 h-10 bg-[#E8F0FE] rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#E8F0FE] rounded-full flex items-center justify-center group-hover:bg-[#D2E3FC] transition-colors">
               <Users className="text-[#4285F4]" size={20} />
             </div>
           </div>
@@ -92,52 +92,52 @@ export default function DashboardPage() {
               {activeStudents} Active
             </span>
           </div>
-        </div>
+        </Link>
 
-        <div className="card-base bg-white hover:shadow-md transition-shadow">
+        <Link href="/fees" className="card-base bg-white hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer block group">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide">Total Collection</p>
-              <h3 className="text-3xl font-normal text-[#202124] mt-2">₹{totalCollected.toLocaleString()}</h3>
+              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide group-hover:text-[#1A73E8] transition-colors">Total Collection</p>
+              <h3 className="text-3xl font-normal text-[#202124] mt-2 group-hover:text-[#1A73E8] transition-colors">₹{totalCollected.toLocaleString()}</h3>
             </div>
-            <div className="p-2 bg-[#E6F4EA] rounded-lg">
+            <div className="p-2 bg-[#E6F4EA] rounded-lg group-hover:bg-[#CEEAD6] transition-colors">
               <CreditCard size={20} className="text-[#1E8E3E]" />
             </div>
           </div>
           <div className="mt-4">
             <p className="text-xs text-[#5F6368]">{payments.length} total transactions</p>
           </div>
-        </div>
+        </Link>
 
-        <div className="card-base bg-white hover:shadow-md transition-shadow">
+        <Link href="/fees" className="card-base bg-white hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer block group">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide">Monthly Revenue</p>
-              <h3 className="text-3xl font-normal text-[#202124] mt-2">₹{currentMonthCollection.toLocaleString()}</h3>
+              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide group-hover:text-[#1A73E8] transition-colors">Monthly Revenue</p>
+              <h3 className="text-3xl font-normal text-[#202124] mt-2 group-hover:text-[#1A73E8] transition-colors">₹{currentMonthCollection.toLocaleString()}</h3>
             </div>
-            <div className="p-2 bg-[#FEF7E0] rounded-lg">
+            <div className="p-2 bg-[#FEF7E0] rounded-lg group-hover:bg-[#FEEFC3] transition-colors">
               <TrendingUp size={20} className="text-[#F9AB00]" />
             </div>
           </div>
           <div className="mt-4">
             <p className="text-xs text-[#5F6368]">{currentMonthPayments.length} payments this month</p>
           </div>
-        </div>
+        </Link>
 
-        <div className="card-base bg-white hover:shadow-md transition-shadow">
+        <Link href="/marks" className="card-base bg-white hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer block group">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide">Exams</p>
-              <h3 className="text-3xl font-normal text-[#202124] mt-2">{totalExams}</h3>
+              <p className="text-[13px] font-medium text-[#5F6368] uppercase tracking-wide group-hover:text-[#1A73E8] transition-colors">Exams</p>
+              <h3 className="text-3xl font-normal text-[#202124] mt-2 group-hover:text-[#1A73E8] transition-colors">{totalExams}</h3>
             </div>
-            <div className="p-2 bg-[#F3E8FD] rounded-lg">
+            <div className="p-2 bg-[#F3E8FD] rounded-lg group-hover:bg-[#E9D2FD] transition-colors">
               <BookOpen size={20} className="text-[#9333EA]" />
             </div>
           </div>
           <div className="mt-4">
             <p className="text-xs text-[#5F6368]">Conducted total</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Main Content Grid */}
