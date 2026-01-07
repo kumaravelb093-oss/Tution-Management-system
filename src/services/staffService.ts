@@ -257,22 +257,27 @@ export const staffService = {
         }
     },
 
-    calculateNetSalary: (basicSalary: number, salaryType: string, presentDays: number, halfDays: number, totalWorkingDays: number): { deductions: number, netSalary: number } => {
-        if (salaryType === "Monthly") {
-            const perDaySalary = basicSalary / totalWorkingDays;
-            const absentDays = totalWorkingDays - presentDays - (halfDays * 0.5);
+    calculateNetSalary: (basicSalary: number, salaryType: string | undefined, presentDays: number, halfDays: number, totalWorkingDays: number): { deductions: number, netSalary: number } => {
+        // Ensure we have valid numbers
+        const salary = basicSalary || 0;
+        const present = presentDays || 0;
+        const half = halfDays || 0;
+        const workDays = totalWorkingDays || 26;
+        const type = salaryType || "Monthly"; // Default to Monthly if not specified
+
+        if (type === "Monthly") {
+            const perDaySalary = salary / workDays;
+            const absentDays = Math.max(0, workDays - present - (half * 0.5));
             const deductions = Math.round(perDaySalary * absentDays);
-            const netSalary = Math.max(0, basicSalary - deductions);
+            const netSalary = Math.max(0, salary - deductions);
             return { deductions, netSalary };
-        } else if (salaryType === "Daily") {
-            const effectiveDays = presentDays + (halfDays * 0.5);
-            const netSalary = Math.round(basicSalary * effectiveDays);
+        } else if (type === "Daily") {
+            const effectiveDays = present + (half * 0.5);
+            const netSalary = Math.round(salary * effectiveDays);
             return { deductions: 0, netSalary };
         } else { // Hourly - simplified
-            // Note: For Hourly, this is a simplified calculation.
-            // A real system would track hours worked.
-            const effectiveDays = presentDays + (halfDays * 0.5);
-            const netSalary = Math.round(basicSalary * 8 * effectiveDays); // Assuming 8 hours/day
+            const effectiveDays = present + (half * 0.5);
+            const netSalary = Math.round(salary * 8 * effectiveDays);
             return { deductions: 0, netSalary };
         }
     }
