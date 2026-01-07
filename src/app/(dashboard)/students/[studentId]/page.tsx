@@ -1,7 +1,7 @@
 "use client";
 export const dynamic = 'force-dynamic';
 import { useEffect, useState, use, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { studentService, Student } from "@/services/studentService";
 import { feeService, Payment } from "@/services/feeService";
 import { marksService, MarksEntry, Exam } from "@/services/marksService";
@@ -21,6 +21,7 @@ import {
 export default function StudentProfilePage({ params }: { params: Promise<{ studentId: string }> }) {
     const { studentId } = use(params);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     const [student, setStudent] = useState<Student | null>(null);
     const [payments, setPayments] = useState<Payment[]>([]);
@@ -29,6 +30,11 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
 
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+
+    // Tab State (Default to performance, or use URL param)
+    const [activeTab, setActiveTab] = useState<"performance" | "fees">(
+        searchParams.get("tab") === "fees" ? "fees" : "performance"
+    );
 
     // Analytics State
     const [activeProgressionType, setActiveProgressionType] = useState<string>("");
@@ -158,6 +164,10 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
     const analysisDates = Array.from(new Set(marks.map(m => m.examDate).filter(Boolean)))
         .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 
+    const tabBase = "px-4 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2";
+    const tabActive = "border-[#1A73E8] text-[#1A73E8]";
+    const tabInactive = "border-transparent text-[#5F6368] hover:text-[#202124] hover:border-[#DADCE0]";
+
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-12">
             {/* Header / Breadcrumbs */}
@@ -204,7 +214,7 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Left Sidebar: Key Details */}
+                {/* Left Sidebar: Key Details (Always Visible) */}
                 <div className="lg:col-span-1 space-y-6">
                     <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
                         <div className="flex flex-col items-center text-center">
@@ -256,200 +266,226 @@ export default function StudentProfilePage({ params }: { params: Promise<{ stude
                 </div>
 
                 {/* Main Content Area: Tabs/Sections */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-4">
 
-                    {/* Analytics Section - PROGRESISON & SUBJECTS */}
-                    {marks.length > 0 && (
-                        <div className="grid grid-cols-1 gap-6">
+                    {/* Tabs Navigation */}
+                    <div className="bg-white border-b border-[#E8EAED] flex overflow-x-auto">
+                        <button
+                            onClick={() => setActiveTab("performance")}
+                            className={`${tabBase} ${activeTab === "performance" ? tabActive : tabInactive}`}
+                        >
+                            <TrendingUp size={16} /> Performance
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("fees")}
+                            className={`${tabBase} ${activeTab === "fees" ? tabActive : tabInactive}`}
+                        >
+                            <ShieldAlert size={16} /> Fees History
+                        </button>
+                    </div>
 
-                            {/* Progression Chart */}
-                            <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                    {/* Performance Tab */}
+                    {activeTab === "performance" && (
+                        <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+                            {/* Analytics Section - PROGRESISON & SUBJECTS */}
+                            {marks.length > 0 && (
+                                <div className="grid grid-cols-1 gap-6">
+
+                                    {/* Progression Chart */}
+                                    <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                                            <div className="flex items-center gap-2">
+                                                <TrendingUp size={18} className="text-[#1A73E8]" />
+                                                <h3 className="font-medium text-[#202124]">Learning Progression</h3>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-bold text-[#9AA0A6] uppercase">Exam:</span>
+                                                <select
+                                                    className="text-xs font-medium border border-[#DADCE0] rounded px-2 py-1 bg-[#F8F9FA] focus:outline-none focus:border-[#4285F4]"
+                                                    value={activeProgressionType}
+                                                    onChange={(e) => setActiveProgressionType(e.target.value)}
+                                                >
+                                                    {examNames.map(name => <option key={name} value={name}>{name}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="h-[250px] w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <LineChart data={progressionData}>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F3F4" />
+                                                    <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#5F6368', fontSize: 11 }} />
+                                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5F6368', fontSize: 11 }} domain={[0, 100]} />
+                                                    <Tooltip
+                                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                        formatter={(value) => [`${value}%`, 'Score']}
+                                                    />
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="percentage"
+                                                        stroke="#4285F4"
+                                                        strokeWidth={3}
+                                                        dot={{ r: 4, fill: '#4285F4', strokeWidth: 2, stroke: '#FFF' }}
+                                                        activeDot={{ r: 6, fill: '#1A73E8' }}
+                                                    />
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+
+                                    {/* Subject Comparison */}
+                                    <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+                                            <div className="flex items-center gap-2">
+                                                <BarChart3 size={18} className="text-[#4285F4]" />
+                                                <h3 className="font-medium text-[#202124]">Subject-wise Proficiency</h3>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs font-bold text-[#9AA0A6] uppercase">Date:</span>
+                                                <select
+                                                    className="text-xs font-medium border border-[#DADCE0] rounded px-2 py-1 bg-[#F8F9FA] focus:outline-none focus:border-[#4285F4]"
+                                                    value={activeAnalysisDate}
+                                                    onChange={(e) => setActiveAnalysisDate(e.target.value)}
+                                                >
+                                                    {analysisDates.map(date => (
+                                                        <option key={date} value={date}>
+                                                            {new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div className="h-[250px] w-full">
+                                            <ResponsiveContainer width="100%" height="100%">
+                                                <BarChart data={analysisData} layout="vertical" margin={{ left: -20, right: 20 }}>
+                                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F3F4" />
+                                                    <XAxis type="number" domain={[0, 100]} hide />
+                                                    <YAxis dataKey="subject" type="category" axisLine={false} tickLine={false} tick={{ fill: '#202124', fontSize: 11, fontWeight: 500 }} />
+                                                    <Tooltip
+                                                        cursor={{ fill: '#F8F9FA' }}
+                                                        contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                        formatter={(value, name, props) => [`${props.payload.score} / ${props.payload.max} (${value}%)`, 'Performance']}
+                                                    />
+                                                    <Bar dataKey="percentage" radius={[0, 4, 4, 0]} barSize={20}>
+                                                        {analysisData.map((entry, index) => (
+                                                            <Cell key={`cell-${index}`} fill={entry.percentage >= 35 ? '#4285F4' : '#EA4335'} />
+                                                        ))}
+                                                    </Bar>
+                                                </BarChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Academic Performance Section - DETAILED TABLE */}
+                            <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
+                                <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <TrendingUp size={18} className="text-[#1A73E8]" />
-                                        <h3 className="font-medium text-[#202124]">Learning Progression</h3>
+                                        <h3 className="font-medium text-[#202124]">Performance Details</h3>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs font-bold text-[#9AA0A6] uppercase">Exam:</span>
-                                        <select
-                                            className="text-xs font-medium border border-[#DADCE0] rounded px-2 py-1 bg-[#F8F9FA] focus:outline-none focus:border-[#4285F4]"
-                                            value={activeProgressionType}
-                                            onChange={(e) => setActiveProgressionType(e.target.value)}
-                                        >
-                                            {examNames.map(name => <option key={name} value={name}>{name}</option>)}
-                                        </select>
-                                    </div>
+                                    <span className="text-xs font-medium text-[#5F6368] uppercase">{marks.length} Score Entries</span>
                                 </div>
-                                <div className="h-[250px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={progressionData}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F3F4" />
-                                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#5F6368', fontSize: 11 }} />
-                                            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#5F6368', fontSize: 11 }} domain={[0, 100]} />
-                                            <Tooltip
-                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                                formatter={(value) => [`${value}%`, 'Score']}
-                                            />
-                                            <Line
-                                                type="monotone"
-                                                dataKey="percentage"
-                                                stroke="#4285F4"
-                                                strokeWidth={3}
-                                                dot={{ r: 4, fill: '#4285F4', strokeWidth: 2, stroke: '#FFF' }}
-                                                activeDot={{ r: 6, fill: '#1A73E8' }}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            </div>
 
-                            {/* Subject Comparison */}
-                            <div className="card-base bg-white border border-[#E8EAED] p-6 rounded-lg shadow-sm">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                                    <div className="flex items-center gap-2">
-                                        <BarChart3 size={18} className="text-[#4285F4]" />
-                                        <h3 className="font-medium text-[#202124]">Subject-wise Proficiency</h3>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-xs font-bold text-[#9AA0A6] uppercase">Date:</span>
-                                        <select
-                                            className="text-xs font-medium border border-[#DADCE0] rounded px-2 py-1 bg-[#F8F9FA] focus:outline-none focus:border-[#4285F4]"
-                                            value={activeAnalysisDate}
-                                            onChange={(e) => setActiveAnalysisDate(e.target.value)}
-                                        >
-                                            {analysisDates.map(date => (
-                                                <option key={date} value={date}>
-                                                    {new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="h-[250px] w-full">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={analysisData} layout="vertical" margin={{ left: -20, right: 20 }}>
-                                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F3F4" />
-                                            <XAxis type="number" domain={[0, 100]} hide />
-                                            <YAxis dataKey="subject" type="category" axisLine={false} tickLine={false} tick={{ fill: '#202124', fontSize: 11, fontWeight: 500 }} />
-                                            <Tooltip
-                                                cursor={{ fill: '#F8F9FA' }}
-                                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                                formatter={(value, name, props) => [`${props.payload.score} / ${props.payload.max} (${value}%)`, 'Performance']}
-                                            />
-                                            <Bar dataKey="percentage" radius={[0, 4, 4, 0]} barSize={20}>
-                                                {analysisData.map((entry, index) => (
-                                                    <Cell key={`cell-${index}`} fill={entry.percentage >= 35 ? '#4285F4' : '#EA4335'} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
+                                <div className="p-0">
+                                    {marks.length === 0 ? (
+                                        <div className="p-8 text-center text-[#5F6368] italic text-sm">No exam marks recorded yet.</div>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-[#FFFFFF] border-b border-[#E8EAED]">
+                                                    <tr>
+                                                        <th className="px-6 py-3 text-left font-medium text-[#5F6368]">Exam / Subject</th>
+                                                        <th className="px-6 py-3 text-right font-medium text-[#5F6368]">Score</th>
+                                                        <th className="px-6 py-3 text-center font-medium text-[#5F6368]">Grade</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-[#E8EAED]">
+                                                    {marks.map((m) => {
+                                                        const examName = m.examId ? exams[m.examId]?.name : "Unknown Exam";
+                                                        const percentage = marksService.calculatePercentage(m.marksObtained, m.maxMarks);
+                                                        const grade = marksService.calculateGrade(percentage);
+                                                        return (
+                                                            <tr key={m.id} className="hover:bg-[#F8F9FA]">
+                                                                <td className="px-6 py-4">
+                                                                    <div className="font-medium text-[#202124]">{m.subject}</div>
+                                                                    <div className="text-[11px] text-[#5F6368]">{examName} ({new Date(m.examDate).toLocaleDateString()})</div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <span className="font-bold">{m.marksObtained}</span> / {m.maxMarks}
+                                                                    <div className="text-[10px] text-[#9AA0A6]">{percentage}%</div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-center">
+                                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${percentage >= 35 ? 'bg-[#E6F4EA] text-[#1E8E3E]' : 'bg-[#FCE8E6] text-[#D93025]'
+                                                                        }`}>
+                                                                        {grade}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* Fees & Billing Section */}
-                    <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <ShieldAlert size={18} className="text-[#F9AB00]" />
-                                <h3 className="font-medium text-[#202124]">Fee Collection History</h3>
-                            </div>
-                            <span className="text-xs font-medium text-[#5F6368] uppercase">{payments.length} Records</span>
-                        </div>
-
-                        <div className="p-0">
-                            {payments.length === 0 ? (
-                                <div className="p-8 text-center text-[#5F6368] italic text-sm">No payment history found for this student.</div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-[#FFFFFF] border-b border-[#E8EAED]">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left font-medium text-[#5F6368]">Month / Year</th>
-                                                <th className="px-6 py-3 text-right font-medium text-[#5F6368]">Amount</th>
-                                                <th className="px-6 py-3 text-center font-medium text-[#5F6368]">Receipt</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-[#E8EAED]">
-                                            {payments.map((p) => (
-                                                <tr key={p.id} className="hover:bg-[#F8F9FA]">
-                                                    <td className="px-6 py-4">
-                                                        <div className="font-medium text-[#202124]">{p.feeMonth} {p.feeYear}</div>
-                                                        <div className="text-[11px] text-[#9AA0A6]">{p.paymentDate}</div>
-                                                    </td>
-                                                    <td className="px-6 py-4 text-right font-medium text-[#1E8E3E]">₹{p.amount.toLocaleString()}</td>
-                                                    <td className="px-6 py-4 text-center">
-                                                        <button
-                                                            onClick={() => pdfService.generateReceipt(p)}
-                                                            className="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
-                                                            title="Download PDF"
-                                                        >
-                                                            <Download size={16} />
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                    {/* Fees Tab */}
+                    {activeTab === "fees" && (
+                        <div className="animate-in fade-in slide-in-from-left-4 duration-300">
+                            {/* Fees & Billing Section */}
+                            <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
+                                <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldAlert size={18} className="text-[#F9AB00]" />
+                                        <h3 className="font-medium text-[#202124]">Fee Collection History</h3>
+                                    </div>
+                                    <span className="text-xs font-medium text-[#5F6368] uppercase">{payments.length} Records</span>
                                 </div>
-                            )}
-                        </div>
-                    </div>
 
-                    {/* Academic Performance Section - DETAILED TABLE */}
-                    <div className="card-base bg-white border border-[#E8EAED] rounded-lg shadow-sm overflow-hidden">
-                        <div className="px-6 py-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <TrendingUp size={18} className="text-[#1A73E8]" />
-                                <h3 className="font-medium text-[#202124]">Performance Details</h3>
-                            </div>
-                            <span className="text-xs font-medium text-[#5F6368] uppercase">{marks.length} Score Entries</span>
-                        </div>
-
-                        <div className="p-0">
-                            {marks.length === 0 ? (
-                                <div className="p-8 text-center text-[#5F6368] italic text-sm">No exam marks recorded yet.</div>
-                            ) : (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-[#FFFFFF] border-b border-[#E8EAED]">
-                                            <tr>
-                                                <th className="px-6 py-3 text-left font-medium text-[#5F6368]">Exam / Subject</th>
-                                                <th className="px-6 py-3 text-right font-medium text-[#5F6368]">Score</th>
-                                                <th className="px-6 py-3 text-center font-medium text-[#5F6368]">Grade</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-[#E8EAED]">
-                                            {marks.map((m) => {
-                                                const examName = m.examId ? exams[m.examId]?.name : "Unknown Exam";
-                                                const percentage = marksService.calculatePercentage(m.marksObtained, m.maxMarks);
-                                                const grade = marksService.calculateGrade(percentage);
-                                                return (
-                                                    <tr key={m.id} className="hover:bg-[#F8F9FA]">
-                                                        <td className="px-6 py-4">
-                                                            <div className="font-medium text-[#202124]">{m.subject}</div>
-                                                            <div className="text-[11px] text-[#5F6368]">{examName} ({new Date(m.examDate).toLocaleDateString()})</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-right">
-                                                            <span className="font-bold">{m.marksObtained}</span> / {m.maxMarks}
-                                                            <div className="text-[10px] text-[#9AA0A6]">{percentage}%</div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${percentage >= 35 ? 'bg-[#E6F4EA] text-[#1E8E3E]' : 'bg-[#FCE8E6] text-[#D93025]'
-                                                                }`}>
-                                                                {grade}
-                                                            </span>
-                                                        </td>
+                                <div className="p-0">
+                                    {payments.length === 0 ? (
+                                        <div className="p-8 text-center text-[#5F6368] italic text-sm">No payment history found for this student.</div>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-[#FFFFFF] border-b border-[#E8EAED]">
+                                                    <tr>
+                                                        <th className="px-6 py-3 text-left font-medium text-[#5F6368]">Month / Year</th>
+                                                        <th className="px-6 py-3 text-right font-medium text-[#5F6368]">Amount</th>
+                                                        <th className="px-6 py-3 text-center font-medium text-[#5F6368]">Receipt</th>
                                                     </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-[#E8EAED]">
+                                                    {payments.map((p) => (
+                                                        <tr key={p.id} className="hover:bg-[#F8F9FA]">
+                                                            <td className="px-6 py-4">
+                                                                <div className="font-medium text-[#202124]">{p.feeMonth} {p.feeYear}</div>
+                                                                <div className="text-[11px] text-[#9AA0A6]">{p.paymentDate}</div>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-right font-medium text-[#1E8E3E]">₹{p.amount.toLocaleString()}</td>
+                                                            <td className="px-6 py-4 text-center">
+                                                                <button
+                                                                    onClick={() => pdfService.generateReceipt(p)}
+                                                                    className="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
+                                                                    title="Download PDF"
+                                                                >
+                                                                    <Download size={16} />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
                                 </div>
-                            )}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                 </div>
             </div>

@@ -71,19 +71,18 @@ export default function StaffSalaryPage() {
 
             // Calculate net salary
             let netSalary = staffBasicSalary;
-            let deductions = 0;
+            // Per user request: Deductions removed.
 
             if (staffSalaryType === "Monthly") {
-                // Full month salary, no deductions if full attendance
-                netSalary = staffBasicSalary;
-                deductions = 0;
+                // Pro-rata: Pay for effective working days only
+                const perDaySalary = staffBasicSalary / workDays;
+                const effectiveDays = presentDays + (halfDays * 0.5);
+                netSalary = Math.round(perDaySalary * effectiveDays);
             } else if (staffSalaryType === "Daily") {
                 netSalary = staffBasicSalary * presentDays;
-                deductions = 0;
             } else {
                 // Hourly - 8 hours per day
                 netSalary = staffBasicSalary * 8 * presentDays;
-                deductions = 0;
             }
 
             // Create salary record
@@ -97,7 +96,7 @@ export default function StaffSalaryPage() {
                 absentDays: absentDays,
                 halfDays: halfDays,
                 basicSalary: staffBasicSalary,
-                deductions: deductions,
+                deductions: 0, // Explicitly 0
                 netSalary: netSalary,
                 paymentStatus: "Unpaid" as const
             };
@@ -199,7 +198,7 @@ export default function StaffSalaryPage() {
                                     <th className="px-6 py-4 text-left text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Staff</th>
                                     <th className="px-6 py-4 text-right text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Basic</th>
                                     <th className="px-6 py-4 text-center text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Present</th>
-                                    <th className="px-6 py-4 text-right text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Deductions</th>
+
                                     <th className="px-6 py-4 text-right text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Net Salary</th>
                                     <th className="px-6 py-4 text-center text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Status</th>
                                     <th className="px-6 py-4 text-center text-[12px] font-medium text-[#5F6368] uppercase tracking-wider">Action</th>
@@ -218,9 +217,7 @@ export default function StaffSalaryPage() {
                                             <td className="px-6 py-4 text-center text-[14px] text-[#5F6368]">
                                                 {salary ? `${salary.presentDays} / ${salary.totalWorkingDays}` : "-"}
                                             </td>
-                                            <td className="px-6 py-4 text-right text-[14px] text-[#D93025]">
-                                                {salary ? `- ₹${salary.deductions.toLocaleString()}` : "-"}
-                                            </td>
+
                                             <td className="px-6 py-4 text-right">
                                                 {salary ? (
                                                     <span className="text-[14px] font-bold text-[#1E8E3E]">₹{salary.netSalary.toLocaleString()}</span>

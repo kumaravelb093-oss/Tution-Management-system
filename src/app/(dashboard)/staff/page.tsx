@@ -167,15 +167,15 @@ export default function StaffPage() {
                                 {filteredStaff.map((member) => (
                                     <tr key={member.id} className="hover:bg-[#F8F9FA] transition-colors">
                                         <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1A73E8] flex items-center justify-center text-xs font-medium">
+                                            <Link href={`/staff/${member.id}`} className="flex items-center gap-3 group cursor-pointer">
+                                                <div className="w-8 h-8 rounded-full bg-[#E8F0FE] text-[#1A73E8] flex items-center justify-center text-xs font-medium group-hover:bg-[#D2E3FC] transition-colors">
                                                     {member.fullName.charAt(0)}
                                                 </div>
                                                 <div>
-                                                    <p className="text-[14px] font-medium text-[#202124]">{member.fullName}</p>
+                                                    <p className="text-[14px] font-medium text-[#202124] group-hover:text-[#1A73E8] transition-colors">{member.fullName}</p>
                                                     <p className="text-[12px] text-[#5F6368]">{member.staffCode || "Pending"}</p>
                                                 </div>
-                                            </div>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4 text-[14px] text-[#202124]">{member.role}</td>
                                         <td className="px-6 py-4">

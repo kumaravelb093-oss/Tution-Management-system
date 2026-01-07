@@ -342,7 +342,7 @@ export default function MarksPage() {
                                                                     </span>
                                                                 </td>
                                                                 <td className="px-6 py-4">
-                                                                    <Link href={`/students/${agg.id}`} className="font-medium text-[#1A73E8] hover:underline">
+                                                                    <Link href={`/students/${agg.id}?tab=performance`} className="font-medium text-[#1A73E8] hover:underline">
                                                                         {agg.name}
                                                                     </Link>
                                                                 </td>

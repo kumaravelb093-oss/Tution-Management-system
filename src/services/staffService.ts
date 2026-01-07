@@ -40,7 +40,7 @@ export interface StaffAttendance {
     staffId: string;
     staffName?: string;
     date: string; // YYYY-MM-DD
-    status: "Present" | "Absent" | "Half Day" | "Leave";
+    status: "Present" | "Absent" | "Half Day";
     createdAt?: any;
 }
 
@@ -171,6 +171,39 @@ export const staffService = {
         }
     },
 
+    getFullAttendance: async (staffId: string): Promise<StaffAttendance[]> => {
+        try {
+            const q = query(
+                collection(db, ATTENDANCE_COLLECTION),
+                where("staffId", "==", staffId)
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as StaffAttendance[];
+        } catch (error) {
+            console.error("Error fetching full attendance:", error);
+            throw error;
+        }
+    },
+
+    getAllAttendanceForMonth: async (month: number, year: number): Promise<StaffAttendance[]> => {
+        try {
+            const startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`;
+            const endDate = `${year}-${String(month + 1).padStart(2, '0')}-31`;
+
+            const q = query(
+                collection(db, ATTENDANCE_COLLECTION),
+                where("date", ">=", startDate),
+                where("date", "<=", endDate)
+            );
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as StaffAttendance[];
+        } catch (error) {
+            console.error("Error fetching all attendance for month:", error);
+            // Return empty if index missing (fallback)
+            return [];
+        }
+    },
+
     getMonthlyAttendance: async (staffId: string, month: number, year: number): Promise<StaffAttendance[]> => {
         try {
             // Simpler query to avoid Firestore composite index requirements
@@ -272,12 +305,15 @@ export const staffService = {
         const workDays = totalWorkingDays || 26;
         const type = salaryType || "Monthly"; // Default to Monthly if not specified
 
+        // Per user request: "Remove deductions from salary tab... input as actual up time".
+        // We will calculate Net Salary based on actual attendance (Pro-rata), but set explicit "Deductions" field to 0.
+
         if (type === "Monthly") {
             const perDaySalary = salary / workDays;
-            const absentDays = Math.max(0, workDays - present - (half * 0.5));
-            const deductions = Math.round(perDaySalary * absentDays);
-            const netSalary = Math.max(0, salary - deductions);
-            return { deductions, netSalary };
+            const effectiveDays = present + (half * 0.5);
+            // Pro-rata calculation: Pay only for days worked
+            const netSalary = Math.round(perDaySalary * effectiveDays);
+            return { deductions: 0, netSalary };
         } else if (type === "Daily") {
             const effectiveDays = present + (half * 0.5);
             const netSalary = Math.round(salary * effectiveDays);

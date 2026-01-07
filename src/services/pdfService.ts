@@ -153,12 +153,12 @@ export const pdfService = {
 
         autoTable(doc, {
             startY: tableStartY,
-            head: [['Earnings', 'Amount (INR)', 'Deductions', 'Amount (INR)']],
+            head: [['Earnings', 'Amount (INR)']],
             body: [
-                ['Basic Salary', `Rs. ${salary.basicSalary.toLocaleString()}`, 'Absence Deduction', `Rs. ${salary.deductions.toLocaleString()}`],
-                ['', '', '', ''], // Spacer
+                ['Basic Salary', `Rs. ${salary.basicSalary.toLocaleString()}`],
+                ['', ''], // Spacer
             ],
-            foot: [['Total Earnings', `Rs. ${salary.basicSalary.toLocaleString()}`, 'Total Deductions', `Rs. ${salary.deductions.toLocaleString()}`]],
+            foot: [['Total Earnings', `Rs. ${salary.netSalary.toLocaleString()}`]], // Use Net Salary as Total Earnings since Deductions are 0/Hidden
             theme: 'grid',
             headStyles: {
                 fillColor: [248, 249, 250],

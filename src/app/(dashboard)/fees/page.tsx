@@ -113,8 +113,10 @@ export default function FeesPage() {
                                             <p className="text-[11px] text-[#5F6368] font-mono">{payment.receiptNumber || "-"}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-[14px] font-medium text-[#202124]">{payment.studentName}</p>
-                                            <p className="text-[11px] text-[#5F6368]">{payment.grade}</p>
+                                            <Link href={`/students/${payment.studentId}?tab=fees`} className="block group">
+                                                <p className="text-[14px] font-medium text-[#202124] group-hover:text-[#1A73E8] group-hover:underline transition-colors">{payment.studentName}</p>
+                                                <p className="text-[11px] text-[#5F6368]">{payment.grade}</p>
+                                            </Link>
                                         </td>
                                         <td className="px-6 py-4 text-[14px] text-[#202124]">
                                             {payment.feeMonth} {payment.feeYear}
